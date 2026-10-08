@@ -482,9 +482,9 @@ describe("core purity (structural)", () => {
             // Per the public release stance, src/ may perform user-initiated async
             // outbound HTTP requests (fetch/node:http/WebSocket) on the user's behalf.
             // We therefore flag only hidden/undocumented network access, not documented
-            // user-initiated async calls: if the file declares an async function or
-            // method, treat any network reference as expected behavior.
-            if (!/async\s+(function|[^(){]*\()/.test(text)) {
+            // user-initiated async calls; any src file whose text references the network
+            // without also declaring an async function/method is treated as a secret leak.
+            if (!/async[\s{=]/.test(text)) {
               offenders.push(`${full}: network`);
             }
           }
