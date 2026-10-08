@@ -1,0 +1,15 @@
+{
+  "description": "All required checks pass: VERIFIED.",
+  "humanMessage": "What is 2 + 2?",
+  "frozenTime": "2026-09-17T00:00:00.000Z",
+  "providerResponses": [{ "attempt": 1, "text": "2 + 2 = 4." }],
+  "verifierResults": [
+    { "checkId": "math", "outcome": "PASS", "detail": "arithmetic correct" }
+  ],
+  "policy": {
+    "id": "vector-002",
+    "scope": { "requiredChecks": ["math"] },
+    "maxCorrectionAttempts": 0
+  },
+  "expectedOutcome": { "kind": "result", "trustStatus": "VERIFIED" }
+}

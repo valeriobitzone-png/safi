@@ -1,0 +1,16 @@
+{
+  "description": "Conflicting PASS/FAIL on the same required check: UNCERTAIN.",
+  "humanMessage": "Quote the source.",
+  "frozenTime": "2026-09-17T00:00:00.000Z",
+  "providerResponses": [{ "attempt": 1, "text": "The source says so." }],
+  "verifierResults": [
+    { "checkId": "sources", "outcome": "PASS", "verifierId": "verifier-a", "detail": "source supports it" },
+    { "checkId": "sources", "outcome": "FAIL", "verifierId": "verifier-b", "detail": "source contradicts it" }
+  ],
+  "policy": {
+    "id": "vector-007",
+    "scope": { "requiredChecks": ["sources"] },
+    "maxCorrectionAttempts": 0
+  },
+  "expectedOutcome": { "kind": "result", "trustStatus": "UNCERTAIN" }
+}

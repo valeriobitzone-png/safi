@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safi.dev/schemas/v0.1/safi-certificate.json",
+  "title": "SafiCertificate",
+  "type": "object",
+  "required": [
+    "schema",
+    "trustStatus",
+    "verificationScope",
+    "checks",
+    "missingRequiredChecks",
+    "conflictingChecks",
+    "attempt",
+    "maxAttempts",
+    "provider",
+    "policyId",
+    "createdAt",
+    "responseSha256"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "safi-certificate/v0.1" },
+    "trustStatus": { "enum": ["VERIFIED", "UNCERTAIN", "FAILED"] },
+    "verificationScope": { "$ref": "https://safi.dev/schemas/v0.1/verification-scope.json" },
+    "checks": {
+      "type": "array",
+      "items": { "$ref": "https://safi.dev/schemas/v0.1/verification-result.json" }
+    },
+    "missingRequiredChecks": { "type": "array", "items": { "type": "string" } },
+    "conflictingChecks": { "type": "array", "items": { "type": "string" } },
+    "attempt": { "type": "integer", "minimum": 1 },
+    "maxAttempts": { "type": "integer", "minimum": 1 },
+    "provider": { "type": "string" },
+    "policyId": { "type": "string" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "responseSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "attemptHistory": {
+      "type": "array",
+      "items": { "$ref": "https://safi.dev/schemas/v0.1/verification-attempt.json" }
+    }
+  }
+}

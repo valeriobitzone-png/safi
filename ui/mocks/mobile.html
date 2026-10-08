@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Safi — EMBEDDED (mobile)</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --safi-text-primary: #0F172A;
+      --safi-text-secondary: #334155;
+      --safi-blue: #2563EB;
+      --safi-blue-dark: #1E3A8A;
+      --safi-blue-soft: #60A5FA;
+      --safi-surface: #F8FAFC;
+      --safi-border: #CBD5E1;
+      --safi-trust-verified: #2e7d32;
+      --safi-trust-uncertain: #b45309;
+      --safi-trust-failed: #c62828;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--safi-surface);
+      color: var(--safi-text-primary);
+    }
+    .phone {
+      max-width: 380px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: #ffffff;
+      padding: 1.1rem 1rem 2rem;
+      box-shadow: 0 0 40px rgba(15, 23, 42, 0.08);
+    }
+    h1 { font-size: 0.95rem; font-weight: 600; margin: 0 0 0.9rem; color: var(--safi-blue-dark); }
+    .bubble {
+      background: var(--safi-surface);
+      border-radius: 16px;
+      padding: 0.85rem 0.95rem;
+      font-size: 0.95rem;
+      line-height: 1.55;
+    }
+    .stamp-row { display: flex; justify-content: flex-end; margin-top: 0.5rem; min-height: 34px; align-items: center; }
+    .note { font-size: 0.75rem; color: var(--safi-text-secondary); margin-top: 1.2rem; }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="Schermata mobile con verifica Safi">
+    <h1>Mobile — lo stamp resta piccolo e toccabile</h1>
+    <div class="bubble">
+      Un DNS è come la rubrica telefonica di internet: tu chiedi per nome
+      (esempio.it) e la rubrica ti restituisce il numero (l'indirizzo IP)
+      per raggiungere il sito.
+    </div>
+    <div class="stamp-row">
+      <safi-stamp id="stamp" context="EMBEDDED" show-label></safi-stamp>
+    </div>
+    <div class="stamp-row" aria-label="Microstato Human-to-AI">
+      <safi-stamp id="micro" data-microstate="TRANSLATING"></safi-stamp>
+    </div>
+    <p class="note">
+      Il microstato sopra mostra la direzione Human→AI: "Safi sta
+      traducendo…". Il prompt tecnico non viene mai mostrato.
+    </p>
+  </main>
+
+  <script type="module">
+    import "./safi-stamp-mount.js";
+  </script>
+</body>
+</html>

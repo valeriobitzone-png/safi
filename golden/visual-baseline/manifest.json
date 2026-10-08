@@ -1,0 +1,153 @@
+{
+  "schema": "safi-visual-baseline/v1",
+  "status": "VISUAL BASELINE APPROVED",
+  "autoPromotion": false,
+  "approvedAt": "2026-09-25T12:28:28.973Z",
+  "approvedBy": "user",
+  "approval": {
+    "text": "APPROVA LE NUOVE GOLDEN: macOS Ask / PROMPT_READY; Android Ask / PROMPT_READY; Android VERIFIED; Android FAILED.",
+    "scope": "exactly the four allowlisted CURRENT surfaces"
+  },
+  "checksumAlgorithm": "SHA-256",
+  "comparisonPolicy": {
+    "mode": "pixel-exact-with-approved-render-tolerance",
+    "blockSize": 16,
+    "maxMeanBlockDelta": 6,
+    "maxP95BlockDelta": 18,
+    "maxBlockDelta": 48,
+    "allowRenderToleranceFor": ["macos/ask"],
+    "rationale": "Native compositor and anti-aliasing variance is tolerated only within explicit block bounds; layout/state changes must exceed them."
+  },
+  "sourceReport": {
+    "path": "artifacts/visual-report/report.json",
+    "sha256": "c58751590d44390cdb51cf21a3bb025eb616ab03b0399db7427db77424380eca",
+    "startedAt": "2026-09-25T12:11:19.447Z",
+    "finishedAt": "2026-09-25T12:11:36.619Z",
+    "runId": "visual-report-2026-09-25T12-11-19-447Z-2026-09-25T12-11-36-619Z",
+    "environment": {
+      "hostPlatform": "darwin",
+      "node": "v26.7.0",
+      "requestedPlatforms": "all",
+      "macosSurface": "installed Safi.app release-bundle WebView",
+      "macosBundle": "apps/desktop/src-tauri/target/release/bundle/macos/Safi.app/Contents/Resources/resources/safi",
+      "androidDevice": {
+        "serial": "<REDACTED>",
+        "model": "A024",
+        "android": "17"
+      },
+      "androidRunnerResult": "PASS"
+    }
+  },
+  "allowlist": [
+    "macos/ask",
+    "android/ask",
+    "android/verified",
+    "android/failed"
+  ],
+  "surfaces": [
+    {
+      "key": "macos/ask",
+      "platform": "macos",
+      "state": "ask",
+      "semanticState": "PROMPT_READY",
+      "source": "artifacts/visual-report/macos/ask.png",
+      "golden": "golden/visual-baseline/macos-ask.png",
+      "sha256": "da6eed6f193e6a691465817d58e8be32c516bb125a7d76e5ecda90838f98882c",
+      "sourceSha256": "da6eed6f193e6a691465817d58e8be32c516bb125a7d76e5ecda90838f98882c",
+      "goldenSha256": "da6eed6f193e6a691465817d58e8be32c516bb125a7d76e5ecda90838f98882c",
+      "width": 384,
+      "height": 430,
+      "bytes": 76039,
+      "approvedAt": "2026-09-25T12:28:28.973Z",
+      "approvedBy": "user",
+      "approvalStatus": "VISUAL BASELINE APPROVED",
+      "provenance": {
+        "source": "artifacts/visual-report/macos/ask.png",
+        "sourceReport": "artifacts/visual-report/report.json",
+        "sourceReportSha256": "c58751590d44390cdb51cf21a3bb025eb616ab03b0399db7427db77424380eca",
+        "sourceRunId": "visual-report-2026-09-25T12-11-19-447Z-2026-09-25T12-11-36-619Z",
+        "sourceRunStartedAt": "2026-09-25T12:11:19.447Z",
+        "sourceRunFinishedAt": "2026-09-25T12:11:36.619Z",
+        "semanticState": "PROMPT_READY"
+      }
+    },
+    {
+      "key": "android/ask",
+      "platform": "android",
+      "state": "ask",
+      "semanticState": "PROMPT_READY",
+      "source": "artifacts/visual-report/android/ask.png",
+      "golden": "golden/visual-baseline/android-ask.png",
+      "sha256": "3a2fd90323aba909782cdb15a70899d0ddc7653e413ac1941c0c796d2c4e33a4",
+      "sourceSha256": "3a2fd90323aba909782cdb15a70899d0ddc7653e413ac1941c0c796d2c4e33a4",
+      "goldenSha256": "3a2fd90323aba909782cdb15a70899d0ddc7653e413ac1941c0c796d2c4e33a4",
+      "width": 1260,
+      "height": 2568,
+      "bytes": 281737,
+      "approvedAt": "2026-09-25T12:28:28.973Z",
+      "approvedBy": "user",
+      "approvalStatus": "VISUAL BASELINE APPROVED",
+      "provenance": {
+        "source": "artifacts/visual-report/android/ask.png",
+        "sourceReport": "artifacts/visual-report/report.json",
+        "sourceReportSha256": "c58751590d44390cdb51cf21a3bb025eb616ab03b0399db7427db77424380eca",
+        "sourceRunId": "visual-report-2026-09-25T12-11-19-447Z-2026-09-25T12-11-36-619Z",
+        "sourceRunStartedAt": "2026-09-25T12:11:19.447Z",
+        "sourceRunFinishedAt": "2026-09-25T12:11:36.619Z",
+        "semanticState": "PROMPT_READY"
+      }
+    },
+    {
+      "key": "android/verified",
+      "platform": "android",
+      "state": "verified",
+      "semanticState": "VERIFIED",
+      "source": "artifacts/visual-report/android/verified.png",
+      "golden": "golden/visual-baseline/android-verified.png",
+      "sha256": "fd755d04e782c9f54c2f317a63350ccb2ac7de06061d7a13ef01258d3e79d789",
+      "sourceSha256": "fd755d04e782c9f54c2f317a63350ccb2ac7de06061d7a13ef01258d3e79d789",
+      "goldenSha256": "fd755d04e782c9f54c2f317a63350ccb2ac7de06061d7a13ef01258d3e79d789",
+      "width": 1260,
+      "height": 2568,
+      "bytes": 98883,
+      "approvedAt": "2026-09-25T12:28:28.973Z",
+      "approvedBy": "user",
+      "approvalStatus": "VISUAL BASELINE APPROVED",
+      "provenance": {
+        "source": "artifacts/visual-report/android/verified.png",
+        "sourceReport": "artifacts/visual-report/report.json",
+        "sourceReportSha256": "c58751590d44390cdb51cf21a3bb025eb616ab03b0399db7427db77424380eca",
+        "sourceRunId": "visual-report-2026-09-25T12-11-19-447Z-2026-09-25T12-11-36-619Z",
+        "sourceRunStartedAt": "2026-09-25T12:11:19.447Z",
+        "sourceRunFinishedAt": "2026-09-25T12:11:36.619Z",
+        "semanticState": "VERIFIED"
+      }
+    },
+    {
+      "key": "android/failed",
+      "platform": "android",
+      "state": "failed",
+      "semanticState": "FAILED",
+      "source": "artifacts/visual-report/android/failed.png",
+      "golden": "golden/visual-baseline/android-failed.png",
+      "sha256": "026ddf49180c271ec082fbb094a3c5c9af0dbbbc8eef58b6986495fef3e26b9f",
+      "sourceSha256": "026ddf49180c271ec082fbb094a3c5c9af0dbbbc8eef58b6986495fef3e26b9f",
+      "goldenSha256": "026ddf49180c271ec082fbb094a3c5c9af0dbbbc8eef58b6986495fef3e26b9f",
+      "width": 1260,
+      "height": 2568,
+      "bytes": 99249,
+      "approvedAt": "2026-09-25T12:28:28.973Z",
+      "approvedBy": "user",
+      "approvalStatus": "VISUAL BASELINE APPROVED",
+      "provenance": {
+        "source": "artifacts/visual-report/android/failed.png",
+        "sourceReport": "artifacts/visual-report/report.json",
+        "sourceReportSha256": "c58751590d44390cdb51cf21a3bb025eb616ab03b0399db7427db77424380eca",
+        "sourceRunId": "visual-report-2026-09-25T12-11-19-447Z-2026-09-25T12-11-36-619Z",
+        "sourceRunStartedAt": "2026-09-25T12:11:19.447Z",
+        "sourceRunFinishedAt": "2026-09-25T12:11:36.619Z",
+        "semanticState": "FAILED"
+      }
+    }
+  ]
+}

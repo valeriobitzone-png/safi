@@ -1,0 +1,83 @@
+{
+  "schema": "safi-mobile-runtime/v1",
+  "resources": [
+    {
+      "route": "/index.html",
+      "source": "packages/mobile-consumer/index.html",
+      "bundle": "index.html",
+      "mimeType": "text/html"
+    },
+    {
+      "route": "/brain.js",
+      "source": "packages/mobile-consumer/brain.js",
+      "bundle": "brain.js",
+      "mimeType": "text/javascript"
+    },
+    {
+      "route": "/node-crypto-shim.js",
+      "source": "packages/mobile-consumer/node-crypto-shim.js",
+      "bundle": "node-crypto-shim.js",
+      "mimeType": "text/javascript"
+    },
+    {
+      "route": "/dist/src/engine.js",
+      "source": "dist/src/engine.js",
+      "bundle": "runtime-core-engine.js",
+      "mimeType": "text/javascript"
+    },
+    {
+      "route": "/dist/src/verify.js",
+      "source": "dist/src/verify.js",
+      "bundle": "runtime-core-verify.js",
+      "mimeType": "text/javascript"
+    },
+    {
+      "route": "/dist/src/translate.js",
+      "source": "dist/src/translate.js",
+      "bundle": "runtime-core-translate.js",
+      "mimeType": "text/javascript"
+    },
+    {
+      "route": "/dist/src/transport.js",
+      "source": "dist/src/transport.js",
+      "bundle": "runtime-core-transport.js",
+      "mimeType": "text/javascript"
+    },
+    {
+      "route": "/packages/safi-client/index.js",
+      "source": "packages/safi-client/index.js",
+      "bundle": "runtime-safi-client.js",
+      "mimeType": "text/javascript"
+    },
+    {
+      "route": "/packages/safi-widget/index.js",
+      "source": "packages/safi-widget/index.js",
+      "bundle": "runtime-safi-widget.js",
+      "mimeType": "text/javascript"
+    },
+    {
+      "route": "/packages/ask-prompt-renderer/index.js",
+      "source": "packages/ask-prompt-renderer/index.js",
+      "bundle": "runtime-ask-prompt-renderer.js",
+      "mimeType": "text/javascript"
+    },
+    {
+      "route": "/packages/verifier-calculation/index.js",
+      "source": "packages/verifier-calculation/index.js",
+      "bundle": "runtime-verifier-calculation.js",
+      "mimeType": "text/javascript"
+    },
+    {
+      "route": "/ui/safi-stamp.js",
+      "source": "ui/safi-stamp.js",
+      "bundle": "runtime-safi-stamp.js",
+      "mimeType": "text/javascript"
+    },
+    {
+      "route": "/ui/projection.js",
+      "source": "ui/projection.js",
+      "bundle": "runtime-projection.js",
+      "mimeType": "text/javascript"
+    }
+  ]
+}

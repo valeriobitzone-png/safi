@@ -1,0 +1,11 @@
+{
+  "schema": "safi-stamp/v0.1",
+  "trustStatus": "VERIFIED",
+  "createdAt": "2026-09-18T08:30:00.000Z",
+  "policyId": "example-policy",
+  "responseSha256": "b6a3f2e31a9d4c08b5e7f6a1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f",
+  "requiredChecks": ["coherence", "meaning-preservation"],
+  "attempt": 1,
+  "maxAttempts": 1,
+  "provider": "example-provider"
+}

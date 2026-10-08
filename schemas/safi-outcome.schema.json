@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safi.dev/schemas/v0.1/safi-outcome.json",
+  "title": "SafiOutcome",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["kind", "answer", "certificate"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "result" },
+        "answer": { "type": "string" },
+        "certificate": { "$ref": "https://safi.dev/schemas/v0.1/safi-certificate.json" }
+      }
+    },
+    {
+      "type": "object",
+      "required": ["kind", "questions"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "clarification" },
+        "questions": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "reason": { "type": "string" }
+      }
+    },
+    {
+      "type": "object",
+      "required": ["kind", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "rejected" },
+        "reason": { "type": "string" }
+      }
+    },
+    {
+      "type": "object",
+      "required": ["kind", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "error" },
+        "message": { "type": "string" }
+      }
+    }
+  ]
+}

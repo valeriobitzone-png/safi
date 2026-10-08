@@ -1,0 +1,8 @@
+{
+  "kind": "clarification",
+  "questions": [
+    "Which product are you asking about?",
+    "Do you want delivery info or warranty info?"
+  ],
+  "reason": "The request mentions 'it' without a resolvable referent."
+}

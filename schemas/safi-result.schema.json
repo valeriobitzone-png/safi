@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safi.dev/schemas/v0.1/safi-result.json",
+  "title": "SafiResult",
+  "type": "object",
+  "required": ["kind", "answer", "certificate"],
+  "additionalProperties": false,
+  "properties": {
+    "kind": { "const": "result" },
+    "answer": { "type": "string" },
+    "certificate": { "$ref": "https://safi.dev/schemas/v0.1/safi-certificate.json" }
+  }
+}

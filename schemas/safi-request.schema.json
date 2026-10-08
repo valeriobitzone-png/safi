@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safi.dev/schemas/v0.1/safi-request.json",
+  "title": "SafiRequest",
+  "type": "object",
+  "required": ["goal", "task", "humanMessage", "attempt"],
+  "additionalProperties": false,
+  "properties": {
+    "goal": { "type": "string" },
+    "task": { "type": "string" },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "humanMessage": { "type": "string" },
+    "attempt": { "type": "integer", "minimum": 1 }
+  }
+}

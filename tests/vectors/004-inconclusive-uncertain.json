@@ -1,0 +1,15 @@
+{
+  "description": "A required check is inconclusive: UNCERTAIN.",
+  "humanMessage": "What is the current population of a small town?",
+  "frozenTime": "2026-09-17T00:00:00.000Z",
+  "providerResponses": [{ "attempt": 1, "text": "Probably around a few thousand." }],
+  "verifierResults": [
+    { "checkId": "freshness", "outcome": "INCONCLUSIVE", "detail": "no data available" }
+  ],
+  "policy": {
+    "id": "vector-004",
+    "scope": { "requiredChecks": ["freshness"] },
+    "maxCorrectionAttempts": 0
+  },
+  "expectedOutcome": { "kind": "result", "trustStatus": "UNCERTAIN" }
+}

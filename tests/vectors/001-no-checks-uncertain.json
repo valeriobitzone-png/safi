@@ -1,0 +1,15 @@
+{
+  "description": "No verification scope: an empty scope can never be VERIFIED.",
+  "humanMessage": "Tell me something.",
+  "frozenTime": "2026-09-17T00:00:00.000Z",
+  "providerResponses": [{ "attempt": 1, "text": "Some generated answer." }],
+  "verifierResults": [
+    { "checkId": "sources", "outcome": "PASS", "detail": "passing but not required" }
+  ],
+  "policy": {
+    "id": "vector-001",
+    "scope": { "requiredChecks": [] },
+    "maxCorrectionAttempts": 0
+  },
+  "expectedOutcome": { "kind": "result", "trustStatus": "UNCERTAIN" }
+}

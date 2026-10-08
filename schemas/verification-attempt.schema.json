@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safi.dev/schemas/v0.1/verification-attempt.json",
+  "title": "AttemptRecord",
+  "type": "object",
+  "required": ["attempt", "trustStatus", "reason", "responseSha256"],
+  "additionalProperties": false,
+  "properties": {
+    "attempt": { "type": "integer", "minimum": 1 },
+    "trustStatus": { "enum": ["VERIFIED", "UNCERTAIN", "FAILED"] },
+    "reason": { "type": "string" },
+    "responseSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

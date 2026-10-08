@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safi.dev/schemas/v0.1/verification-policy.json",
+  "title": "VerificationPolicy",
+  "type": "object",
+  "required": ["id", "scope", "maxCorrectionAttempts"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string" },
+    "scope": { "$ref": "https://safi.dev/schemas/v0.1/verification-scope.json" },
+    "maxCorrectionAttempts": { "type": "integer", "minimum": 0 }
+  }
+}

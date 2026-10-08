@@ -1,0 +1,16 @@
+{
+  "description": "Optional check fails but is ignored by scope: still VERIFIED.",
+  "humanMessage": "Explain gravity.",
+  "frozenTime": "2026-09-17T00:00:00.000Z",
+  "providerResponses": [{ "attempt": 1, "text": "Gravity is a fundamental interaction." }],
+  "verifierResults": [
+    { "checkId": "coherence", "outcome": "PASS", "detail": "required, passes" },
+    { "checkId": "freshness", "outcome": "FAIL", "detail": "optional, ignored" }
+  ],
+  "policy": {
+    "id": "vector-006",
+    "scope": { "requiredChecks": ["coherence"], "optionalChecks": ["freshness"] },
+    "maxCorrectionAttempts": 0
+  },
+  "expectedOutcome": { "kind": "result", "trustStatus": "VERIFIED" }
+}

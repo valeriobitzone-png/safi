@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Safi — demo locale end-to-end</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --safi-text-primary: #0F172A;
+      --safi-text-secondary: #334155;
+      --safi-blue: #2563EB;
+      --safi-blue-dark: #1E3A8A;
+      --safi-blue-soft: #60A5FA;
+      --safi-surface: #F8FAFC;
+      --safi-border: #CBD5E1;
+      --safi-trust-verified: #2e7d32;
+      --safi-trust-uncertain: #b45309;
+      --safi-trust-failed: #c62828;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--safi-surface);
+      color: var(--safi-text-primary);
+      display: grid;
+      place-items: start center;
+      padding: 2rem 1rem 4rem;
+    }
+    .panel {
+      background: #ffffff;
+      border: 1px solid var(--safi-border);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+      width: min(680px, 94vw);
+      padding: 1.5rem 1.6rem 2rem;
+    }
+    h1 { font-size: 1.15rem; margin: 0 0 0.3rem; color: var(--safi-blue-dark); }
+    .sub { color: var(--safi-text-secondary); font-size: 0.85rem; margin: 0 0 1.2rem; }
+    label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.35rem; }
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 74px;
+      border: 1px solid var(--safi-border);
+      border-radius: 12px;
+      padding: 0.6rem 0.7rem;
+      font: inherit;
+      resize: vertical;
+      background: #fbfdfb;
+    }
+    textarea:focus-visible { outline: 2px solid var(--safi-blue); outline-offset: 1px; }
+    .row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin-top: 0.8rem; }
+    button.primary {
+      all: unset; cursor: pointer; background: var(--safi-blue); color: #fff;
+      font-weight: 600; font-size: 0.9rem; border-radius: 999px; padding: 0.55rem 1.1rem;
+    }
+    button.primary:focus-visible { outline: 2px solid var(--safi-blue); outline-offset: 2px; }
+    button.chip {
+      all: unset; cursor: pointer; font-size: 0.78rem; color: var(--safi-blue-dark);
+      border: 1px solid var(--safi-border); border-radius: 999px; padding: 0.3rem 0.7rem; background: #fbfdfb;
+    }
+    button.chip:focus-visible { outline: 2px solid var(--safi-blue); outline-offset: 1px; }
+    .answer-box {
+      margin-top: 1.2rem;      border-top: 1px dashed var(--safi-border); padding-top: 1rem; min-height: 3rem;
+    }
+    .answer { font-size: 0.98rem; line-height: 1.6; white-space: pre-wrap; }
+    .stamp-row { display: flex; justify-content: flex-end; margin-top: 0.6rem; }
+    .dev { margin-top: 1rem; }
+    .dev details {
+      border: 1px solid var(--safi-border); border-radius: 12px; padding: 0.5rem 0.8rem; background: #fbfdfb;
+    }
+    .dev summary { cursor: pointer; font-weight: 600; font-size: 0.85rem; color: var(--safi-blue-dark); }
+    .dev pre {
+      font-size: 0.72rem; overflow: auto; max-height: 320px; background: #f2f7f3;
+      border-radius: 8px; padding: 0.6rem;
+    }
+    .status { font-size: 0.8rem; color: var(--safi-text-secondary); margin-top: 0.5rem; min-height: 1.1rem; }
+    .note { font-size: 0.75rem; color: var(--safi-text-secondary); margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <main class="panel" aria-label="Demo Safi end-to-end">
+    <h1>Parla normalmente.</h1>
+    <p class="sub">
+      Demo locale end-to-end: interpretazione, traduzione Human→AI, verifica,
+      correzione limitata e certificato. Nessuna credenziale richiesta.
+    </p>
+
+    <label for="speak">Parla normalmente</label>
+    <textarea id="speak" placeholder="Oh, mi spieghi sta cosa dei buchi neri semplice semplice?"></textarea>
+
+    <div class="row">
+      <button class="primary" id="send">Invia</button>
+      <button class="chip" data-scenario="1-translation">1 · Traduzione</button>
+      <button class="chip" data-scenario="2-calculation">2 · 237 × 14</button>
+      <button class="chip" data-scenario="3-correction">3 · Errore → correzione</button>
+      <button class="chip" data-scenario="4-uncertainty">4 · Incertezza</button>
+      <button class="chip" data-scenario="4b-failed">4b · Fallimento onesto</button>
+      <label style="margin: 0 0 0 auto; font-weight: 400; font-size: 0.8rem; display: inline-flex; gap: 0.4rem; align-items: center;">
+        <input type="checkbox" id="devmode" /> Dev mode
+      </label>
+    </div>
+
+    <div class="answer-box" aria-live="polite">
+      <div class="answer" id="answer">La risposta apparirà qui, con il suo Safi Stamp.</div>
+      <div class="stamp-row"><safi-stamp id="stamp" context="MANUAL" hidden></safi-stamp></div>
+      <div class="dev" id="dev" hidden>
+        <details>
+          <summary>Intent · Translation · Checks · Evidence · Certificate</summary>
+          <pre id="devdump"></pre>
+        </details>
+      </div>
+      <div class="status" id="status"></div>
+    </div>
+
+    <p class="note">
+      Tutto avviene in locale attraverso il core Safi e i suoi adapter:
+      nessuna dashboard, nessun account, nessun database. In modalità
+      developer puoi ispezionare Intent, Translation, Checks, Evidence e
+      Certificate — solo lettura.
+    </p>
+  </main>
+
+  <script type="module">
+    import "/ui/safi-stamp.js";
+
+    const $ = (id) => document.getElementById(id);
+    const answerEl = $("answer");
+    const stampEl = $("stamp");
+    const statusEl = $("status");
+    const devEl = $("dev");
+    const devDump = $("devdump");
+
+    async function runScenario(id, messageOverride) {
+      statusEl.textContent = "Safi sta capendo… Safi sta traducendo… Safi sta verificando…";
+      stampEl.hidden = true;
+      devEl.hidden = true;
+      const body = messageOverride ? { message: messageOverride } : undefined;
+      const res = await fetch(`/api/demo/${id}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        ...(body ? { body: JSON.stringify(body) } : {}),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: res.statusText }));
+        statusEl.textContent = `Errore: ${err.error ?? res.status}`;
+        return;
+      }
+      const data = await res.json();
+      answerEl.textContent =
+        typeof data.answer === "string" ? data.answer : JSON.stringify(data.answer);
+      if (data.certificate) {
+        stampEl.hidden = false;
+        stampEl.source = data.certificate;
+      }
+      statusEl.textContent = `Stato: ${data.trustStatus ?? data.kind}${
+        data.hashMatches === false ? " — ATTENZIONE: hash non corrispondente" : ""
+      }`;
+      if ($("devmode").checked) {
+        devDump.textContent = JSON.stringify(
+          {
+            intent: data.steps?.intentFrame ?? null,
+            translation: data.steps?.semantic ?? null,
+            checks: data.certificate?.checks ?? null,
+            evidence: (data.certificate?.checks ?? []).map((c) => c.evidence ?? c.detail),
+            certificate: data.certificate,
+          },
+          null,
+          2,
+        );
+        devEl.hidden = false;
+      }
+      if (messageOverride) $("speak").value = messageOverride;
+    }
+
+    $("send").addEventListener("click", () => {
+      const message = $("speak").value.trim();
+      if (!message) {
+        statusEl.textContent = "Scrivi prima qualcosa da chiedere.";
+        return;
+      }
+      // Demo deterministica: la richiesta libera viene mappata dallo
+      // scenario 1 (interpretazione + traduzione + verifica coerenza).
+      runScenario("1-translation", message);
+    });
+    for (const chip of document.querySelectorAll("[data-scenario]")) {
+      chip.addEventListener("click", () => runScenario(chip.dataset.scenario));
+    }
+  </script>
+</body>
+</html>

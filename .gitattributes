@@ -1,0 +1,34 @@
+# Normalize line endings for text files
+* text=auto
+
+# Markdown, docs, scripts, configs, JSON, YAML, TOML
+*.md text
+*.txt text
+*.mjs text
+*.js text
+*.ts text
+*.tsx text
+*.json text
+*.yml text
+*.yaml text
+*.toml text
+*.sh text
+*.bash text
+*.css text
+*.html text
+*.xml text
+*.kt text
+*.swift text
+*.rs text
+*.kts text
+
+# Keep generated binaries out of blame/delta noise
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.icns binary
+*.webp binary
+*.mp4 binary
+*.mov binary
