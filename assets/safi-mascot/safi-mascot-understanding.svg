@@ -1,0 +1,190 @@
+<style>
+.safi-mascot { display: block; width: 100%; height: 100%; }
+.safi-mascot .sm-glows .glow { opacity: 0; transition: opacity 420ms ease; }
+.safi-mascot .sm-glows .glow-neutral { opacity: 0.75; }
+.safi-mascot[data-state="verified"] .glow-verified,
+.safi-mascot[data-state="uncertain"] .glow-uncertain,
+.safi-mascot[data-state="failed"] .glow-failed { opacity: 1; }
+.safi-mascot[data-state="verified"] .glow-neutral,
+.safi-mascot[data-state="uncertain"] .glow-neutral,
+.safi-mascot[data-state="failed"] .glow-neutral { opacity: 0; }
+
+.safi-mascot .eyes, .safi-mascot .sign, .safi-mascot .sm-magnifier, .safi-mascot .sm-dots,
+.safi-mascot .sm-sparks, .safi-mascot .sm-puff, .safi-mascot .m-small, .safi-mascot .m-pursed,
+.safi-mascot .chk-puff, .safi-mascot .arm-sign { display: none; }
+.safi-mascot .m-smile, .safi-mascot .chk { display: block; }
+
+.safi-mascot[data-state="understanding"] .eyes-attentive { display: block; }
+.safi-mascot[data-state="translating"] .eyes-glance { display: block; }
+.safi-mascot[data-state="verifying"] .eyes-attentive { display: block; }
+.safi-mascot[data-state="verified"] .eyes-happy { display: block; }
+.safi-mascot[data-state="uncertain"] .eyes-squint { display: block; }
+.safi-mascot[data-state="failed"] .eyes-squeeze { display: block; }
+.safi-mascot:not([data-state="idle"]) .eyes-idle { display: none; }
+
+.safi-mascot[data-state="uncertain"] .m-smile,
+.safi-mascot[data-state="failed"] .m-smile { display: none; }
+.safi-mascot[data-state="uncertain"] .m-small { display: block; }
+.safi-mascot[data-state="failed"] .m-pursed { display: block; }
+.safi-mascot[data-state="failed"] .chk { opacity: 0.35; }
+.safi-mascot[data-state="failed"] .chk-puff { display: block; }
+
+.safi-mascot[data-state="verified"] .sign-check,
+.safi-mascot[data-state="uncertain"] .sign-query,
+.safi-mascot[data-state="failed"] .sign-bang { display: block; transform-origin: 97px 40px; animation: safi-mascot-sign-pop 340ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.safi-mascot[data-state="verified"] .arm-sign,
+.safi-mascot[data-state="uncertain"] .arm-sign,
+.safi-mascot[data-state="failed"] .arm-sign { display: block; }
+
+.safi-mascot[data-state="verifying"] .sm-magnifier { display: block; transform-origin: 98px 66px; animation: safi-mascot-scan 1.5s ease-in-out infinite; }
+.safi-mascot[data-state="understanding"] .sm-dots { display: block; }
+.safi-mascot[data-state="understanding"] .sm-dots .d { animation: safi-mascot-dot 1.2s ease-in-out infinite; }
+.safi-mascot[data-state="understanding"] .sm-dots .d2 { animation-delay: 150ms; }
+.safi-mascot[data-state="understanding"] .sm-dots .d3 { animation-delay: 300ms; }
+.safi-mascot[data-state="translating"] .sm-sparks { display: block; }
+.safi-mascot[data-state="translating"] .sm-sparks .sp { transform-origin: center; animation: safi-mascot-twinkle 1.4s ease-in-out infinite; }
+.safi-mascot[data-state="translating"] .sm-sparks .sp2 { animation-delay: 500ms; }
+.safi-mascot[data-state="failed"] .sm-puff { display: block; animation: safi-mascot-puff 900ms ease-out both; }
+
+.safi-mascot .sm-rig { transform-origin: 60px 92px; animation: safi-mascot-breathe 3.6s ease-in-out infinite; }
+.safi-mascot[data-state="understanding"] .sm-rig { animation: safi-mascot-tilt 2.6s ease-in-out infinite; }
+.safi-mascot[data-state="verifying"] .sm-rig { animation: safi-mascot-tilt-small 2.2s ease-in-out infinite; }
+.safi-mascot[data-state="uncertain"] .sm-rig { animation: safi-mascot-tilt-hold 400ms ease-out both; }
+.safi-mascot[data-state="translating"] .glance-rig { animation: safi-mascot-glance 1.6s ease-in-out infinite; }
+.safi-mascot[data-state="verified"] .sm-rig { animation: safi-mascot-bounce 380ms cubic-bezier(0.34, 1.56, 0.64, 1) 1, safi-mascot-breathe 3.6s ease-in-out 400ms infinite; }
+
+@keyframes safi-mascot-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.016); } }
+@keyframes safi-mascot-tilt { 0%, 100% { transform: rotate(-4.5deg); } 50% { transform: rotate(-2.5deg); } }
+@keyframes safi-mascot-tilt-small { 0%, 100% { transform: rotate(2deg); } 50% { transform: rotate(-2deg); } }
+@keyframes safi-mascot-tilt-hold { from { transform: rotate(0deg); } to { transform: rotate(-6.5deg); } }
+@keyframes safi-mascot-glance { 0%, 100% { transform: translateX(-2.6px); } 50% { transform: translateX(2.6px); } }
+@keyframes safi-mascot-scan { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(8deg); } }
+@keyframes safi-mascot-dot { 0%, 100% { opacity: 0.25; } 45% { opacity: 1; } }
+@keyframes safi-mascot-twinkle { 0%, 100% { opacity: 0.25; transform: scale(0.82); } 50% { opacity: 1; transform: scale(1.08); } }
+@keyframes safi-mascot-sign-pop { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes safi-mascot-bounce { 0% { transform: translateY(0); } 45% { transform: translateY(-4.5px); } 100% { transform: translateY(0); } }
+@keyframes safi-mascot-puff { from { opacity: 0.95; transform: translateX(0); } to { opacity: 0; transform: translateX(-7px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .safi-mascot .sm-rig, .safi-mascot .glance-rig, .safi-mascot .sm-magnifier,
+  .safi-mascot .sm-dots .d, .safi-mascot .sm-sparks .sp,
+  .safi-mascot .sign { animation: none !important; }
+}</style>
+<svg class="safi-mascot" data-state="understanding" viewBox="0 0 120 120" aria-hidden="true" focusable="false" role="presentation">
+  <defs>
+    <radialGradient id="safi-mascot-body" cx="50%" cy="34%" r="80%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="66%" stop-color="#eef6ff"/>
+      <stop offset="100%" stop-color="#DCEBFF"/>
+    </radialGradient>
+    <radialGradient id="safi-mascot-glow-neutral" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#DCEBFF" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#DCEBFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="safi-mascot-glow-verified" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#86F7C1" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#86F7C1" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="safi-mascot-glow-uncertain" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFE08A" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#FFE08A" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="safi-mascot-glow-failed" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FF8B8B" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#FF8B8B" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <ellipse class="sm-shadow" cx="60" cy="114" rx="22" ry="3.6" fill="rgba(31,45,60,0.16)"/>
+  <g class="sm-glows">
+    <circle class="glow glow-neutral" cx="60" cy="56" r="54" fill="url(#safi-mascot-glow-neutral)"/>
+    <circle class="glow glow-verified" cx="60" cy="56" r="54" fill="url(#safi-mascot-glow-verified)"/>
+    <circle class="glow glow-uncertain" cx="60" cy="56" r="54" fill="url(#safi-mascot-glow-uncertain)"/>
+    <circle class="glow glow-failed" cx="60" cy="56" r="54" fill="url(#safi-mascot-glow-failed)"/>
+  </g>
+
+  <g class="sm-rig">
+    <path class="sm-body" d="M 60 7 C 79.8 7 96 25 96 43 C 96 61.72 80.88 63.76 72 81 C 76 78 81 84 81 95 C 81 107 72 114 60 114 C 48 114 39 107 39 95 C 39 84 44 78 48 81 C 39.12 63.76 24 61.72 24 43 C 24 25 40.2 7 60 7 Z" fill="url(#safi-mascot-body)" stroke="rgba(116,148,188,0.4)" stroke-width="1.3"/>
+    <g class="sm-arms">
+      <ellipse class="sm-arm-lu" cx="40" cy="92" rx="5.4" ry="8.4" fill="url(#safi-mascot-body)" stroke="rgba(116,148,188,0.4)" stroke-width="1.2" transform="rotate(16 40 92)"/>
+      <ellipse class="sm-arm-ru" cx="80" cy="92" rx="5.4" ry="8.4" fill="url(#safi-mascot-body)" stroke="rgba(116,148,188,0.4)" stroke-width="1.2" transform="rotate(-16 80 92)"/>
+    </g>
+
+    <g class="sm-face">
+      <g class="eyes eyes-idle"><g class=""><circle cx="46" cy="46" r="5.1" fill="#2c3e50"/><circle cx="47.73" cy="43.96" r="1.63" fill="#ffffff" opacity="0.92"/></g><g class=""><circle cx="74" cy="46" r="5.1" fill="#2c3e50"/><circle cx="75.73" cy="43.96" r="1.63" fill="#ffffff" opacity="0.92"/></g></g>
+      <g class="eyes eyes-attentive">
+        <g class=""><circle cx="46" cy="46" r="5.3" fill="#2c3e50"/><circle cx="47.8" cy="43.88" r="1.7" fill="#ffffff" opacity="0.92"/></g><g class=""><circle cx="74" cy="46" r="5.3" fill="#2c3e50"/><circle cx="75.8" cy="43.88" r="1.7" fill="#ffffff" opacity="0.92"/></g>
+        <path d="M 41.42 34.64 A 5.4 5.4 0 0 1 50.58 34.64" fill="none" stroke="#2c3e50" stroke-width="1.8" stroke-linecap="round"/><path d="M 69.42 34.64 A 5.4 5.4 0 0 1 78.58 34.64" fill="none" stroke="#2c3e50" stroke-width="1.8" stroke-linecap="round"/>
+      </g>
+      <g class="eyes eyes-glance">
+        <g class="glance-rig"><g class=""><circle cx="46" cy="46" r="5.1" fill="#2c3e50"/><circle cx="47.73" cy="43.96" r="1.63" fill="#ffffff" opacity="0.92"/></g><g class=""><circle cx="74" cy="46" r="5.1" fill="#2c3e50"/><circle cx="75.73" cy="43.96" r="1.63" fill="#ffffff" opacity="0.92"/></g></g>
+        <clipPath id="safi-glance-clip"><rect x="36.9" y="36.9" width="46.2" height="18.2"/></clipPath>
+      </g>
+      <g class="eyes eyes-happy"><path class="" d="M 40.02 44.71 A 6.6 6.6 0 0 1 51.98 44.71" fill="none" stroke="#2c3e50" stroke-width="3.2" stroke-linecap="round"/><path class="" d="M 68.02 44.71 A 6.6 6.6 0 0 1 79.98 44.71" fill="none" stroke="#2c3e50" stroke-width="3.2" stroke-linecap="round"/></g>
+      <g class="eyes eyes-squint">
+        <path class="" d="M 40.68 46.56 A 5.4 5.4 0 0 1 51.32 46.56" fill="none" stroke="#2c3e50" stroke-width="3" stroke-linecap="round"/>
+        <g class=""><circle cx="74" cy="46.6" r="4.199999999999999" fill="#2c3e50"/><circle cx="75.43" cy="44.92" r="1.34" fill="#ffffff" opacity="0.92"/></g>
+        <path d="M 41.41 35.06 A 5.2 5.2 0 0 1 50.59 35.06" fill="none" stroke="#2c3e50" stroke-width="2" stroke-linecap="round" transform="rotate(10 46 37.5)"/>
+      </g>
+      <g class="eyes eyes-squeeze">
+        <path class="" d="M 41.11 45.72 A 5.2 5.2 0 0 1 50.89 45.72" fill="none" stroke="#2c3e50" stroke-width="3.2" stroke-linecap="round"/>
+        <path class="" d="M 69.11 45.72 A 5.2 5.2 0 0 1 78.89 45.72" fill="none" stroke="#2c3e50" stroke-width="3.2" stroke-linecap="round"/>
+        <path d="M 41.25 34.17 A 5.8 5.8 0 0 1 50.75 34.17" fill="none" stroke="#2c3e50" stroke-width="2.3" stroke-linecap="round" transform="rotate(12 46 37.5)"/>
+        <path d="M 69.25 34.17 A 5.8 5.8 0 0 1 78.75 34.17" fill="none" stroke="#2c3e50" stroke-width="2.3" stroke-linecap="round" transform="rotate(-12 74 37.5)"/>
+      </g>
+
+      <g class="sm-mouth">
+        <path class="m-smile" d="M 51.5 55.3 Q 60 63.72 68.5 55.3" fill="none" stroke="#2c3e50" stroke-width="2.6" stroke-linecap="round"/>
+        <path class="m-small" d="M 55.3 59.6 Q 60 63.33 64.7 59.6" fill="none" stroke="#2c3e50" stroke-width="2.4" stroke-linecap="round"/>
+        <path class="m-pursed" d="M 53.8 63.5 Q 60 66.6 66.2 63.5" fill="none" stroke="#2c3e50" stroke-width="2.8" stroke-linecap="round"/>
+      </g>
+
+      <g class="sm-cheeks">
+        <ellipse class="chk" cx="39" cy="56.5" rx="5.6" ry="3.6" fill="#ffb3ba" opacity="0.5"/>
+        <ellipse class="chk" cx="81" cy="56.5" rx="5.6" ry="3.6" fill="#ffb3ba" opacity="0.5"/>
+        <ellipse class="chk chk-puff" cx="37.5" cy="58.5" rx="8" ry="6" fill="#ffb3ba" opacity="0.75"/>
+        <ellipse class="chk chk-puff" cx="82.5" cy="58.5" rx="8" ry="6" fill="#ffb3ba" opacity="0.75"/>
+      </g>
+    </g>
+
+    <path class="sm-star-outline" d="M 60 74 L 62.53 80.52 L 69.51 80.91 L 64.09 85.33 L 65.88 92.09 L 60 88.3 L 54.12 92.09 L 55.91 85.33 L 50.49 80.91 L 57.47 80.52 Z" fill="#e8a93c" opacity="0.55"/>
+    <path class="sm-star" d="M 60 75.5 L 62.12 81.09 L 68.08 81.37 L 63.42 85.11 L 65 90.88 L 60 87.6 L 55 90.88 L 56.58 85.11 L 51.92 81.37 L 57.88 81.09 Z" fill="#ffc94d" stroke="#e8a93c" stroke-width="1"/>
+
+    <g class="sm-arm arm-sign"><path d="M 82 88 Q 90 44 97 38" fill="none" stroke="rgba(116,148,188,0.55)" stroke-width="4.4" stroke-linecap="round"/></g>
+
+    
+    <g class="sign sign-check">
+      <rect x="84" y="14" width="26" height="26" rx="9" fill="#86F7C1" stroke="#2fbf7f" stroke-width="1.6"/>
+      <path d="M 91 27.5 L 95.5 32.5 L 103.5 22" fill="none" stroke="#0d5c38" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g class="sign sign-query">
+      <rect x="84" y="14" width="26" height="26" rx="9" fill="#FFE08A" stroke="#d9a13c" stroke-width="1.6"/>
+      <path d="M 91.8 24.5 C 91.6 19.5 98 17.6 100.8 20.8 C 102.8 23.2 101.4 25.6 98.6 27 L 98.6 29.2" fill="none" stroke="#7a4d00" stroke-width="3" stroke-linecap="round"/><circle cx="98.6" cy="34" r="1.9" fill="#7a4d00"/>
+    </g>
+    <g class="sign sign-bang">
+      <rect x="84" y="14" width="26" height="26" rx="9" fill="#FF8B8B" stroke="#d95c5c" stroke-width="1.6"/>
+      <line x1="97" y1="20" x2="97" y2="29.5" stroke="#7e221c" stroke-width="3.4" stroke-linecap="round"/><circle cx="97" cy="34.2" r="2" fill="#7e221c"/>
+    </g>
+
+    <g class="sm-magnifier">
+      <circle cx="86" cy="52" r="9.5" fill="rgba(224,240,255,0.5)" stroke="#6f9cc8" stroke-width="2.6"/>
+      <line x1="93" y1="59" x2="101" y2="67" stroke="#6f9cc8" stroke-width="3.4" stroke-linecap="round"/>
+    </g>
+
+    <g class="sm-dots">
+      <circle class="d d1" cx="90" cy="20" r="2" fill="#8fa8c4"/>
+      <circle class="d d2" cx="97" cy="16.5" r="2" fill="#8fa8c4"/>
+      <circle class="d d3" cx="104" cy="13" r="2" fill="#8fa8c4"/>
+    </g>
+
+    <g class="sm-sparks">
+      <path class="sp sp1" d="M 18 20.8 L 19.23 24.3 L 22.95 24.39 L 20 26.65 L 21.06 30.21 L 18 28.1 L 14.94 30.21 L 16 26.65 L 13.05 24.39 L 16.77 24.3 Z" fill="#ffd97a"/>
+      <path class="sp sp2" d="M 29 8.6 L 29.82 10.87 L 32.23 10.95 L 30.33 12.43 L 31 14.75 L 29 13.4 L 27 14.75 L 27.67 12.43 L 25.77 10.95 L 28.18 10.87 Z" fill="#ffd97a"/>
+    </g>
+
+    <g class="sm-puff">
+      <circle cx="16" cy="60" r="4.4" fill="#e8eef5"/>
+      <circle cx="10.5" cy="63" r="3.1" fill="#eef3f8"/>
+    </g>
+  </g>
+</svg>

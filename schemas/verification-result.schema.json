@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safi.dev/schemas/v0.1/verification-result.json",
+  "title": "VerificationResult",
+  "type": "object",
+  "required": ["checkId", "outcome", "detail"],
+  "additionalProperties": false,
+  "properties": {
+    "checkId": { "type": "string" },
+    "outcome": { "enum": ["PASS", "INCONCLUSIVE", "FAIL"] },
+    "detail": { "type": "string" },
+    "verifierId": { "type": "string" },
+    "evidence": true
+  }
+}

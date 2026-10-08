@@ -1,0 +1,40 @@
+{
+  "kind": "result",
+  "answer": "Gravity is a fundamental interaction. Picture a stretched sheet: a heavy ball makes it curve, and a marble nearby rolls toward it. That curve is what we call gravity.",
+  "certificate": {
+    "schema": "safi-certificate/v0.1",
+    "trustStatus": "VERIFIED",
+    "verificationScope": {
+      "requiredChecks": ["coherence", "meaning-preservation"],
+      "optionalChecks": ["freshness"]
+    },
+    "checks": [
+      {
+        "checkId": "coherence",
+        "outcome": "PASS",
+        "detail": "The answer addresses the requested explanation.",
+        "verifierId": "coherence-verifier"
+      },
+      {
+        "checkId": "meaning-preservation",
+        "outcome": "PASS",
+        "detail": "Humanized text preserves the raw answer's claims.",
+        "verifierId": "meaning-verifier"
+      },
+      {
+        "checkId": "freshness",
+        "outcome": "INCONCLUSIVE",
+        "detail": "Optional check skipped: no freshness source available.",
+        "verifierId": "freshness-verifier"
+      }
+    ],
+    "missingRequiredChecks": [],
+    "conflictingChecks": [],
+    "attempt": 1,
+    "maxAttempts": 1,
+    "provider": "example-provider",
+    "policyId": "example-policy",
+    "createdAt": "2026-09-17T09:00:00.000Z",
+    "responseSha256": "b6a3f2e31a9d4c08b5e7f6a1d2c3b4a5968778695a4b3c2d1e0f9a8b7c6d5e4f"
+  }
+}

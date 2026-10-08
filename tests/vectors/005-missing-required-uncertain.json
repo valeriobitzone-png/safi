@@ -1,0 +1,15 @@
+{
+  "description": "A required check never ran: UNCERTAIN.",
+  "humanMessage": "Summarize the news.",
+  "frozenTime": "2026-09-17T00:00:00.000Z",
+  "providerResponses": [{ "attempt": 1, "text": "A summary." }],
+  "verifierResults": [
+    { "checkId": "sources", "outcome": "PASS", "detail": "ran" }
+  ],
+  "policy": {
+    "id": "vector-005",
+    "scope": { "requiredChecks": ["sources", "freshness"] },
+    "maxCorrectionAttempts": 0
+  },
+  "expectedOutcome": { "kind": "result", "trustStatus": "UNCERTAIN" }
+}

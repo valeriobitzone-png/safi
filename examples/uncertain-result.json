@@ -1,0 +1,42 @@
+{
+  "kind": "result",
+  "answer": "The event likely happened last week, but the date could not be confirmed.",
+  "certificate": {
+    "schema": "safi-certificate/v0.1",
+    "trustStatus": "UNCERTAIN",
+    "verificationScope": {
+      "requiredChecks": ["freshness", "sources"],
+      "optionalChecks": []
+    },
+    "checks": [
+      {
+        "checkId": "sources",
+        "outcome": "PASS",
+        "detail": "One independent source found.",
+        "verifierId": "sources-verifier"
+      },
+      {
+        "checkId": "freshness",
+        "outcome": "INCONCLUSIVE",
+        "detail": "Publication date of the source could not be established.",
+        "verifierId": "freshness-verifier"
+      }
+    ],
+    "missingRequiredChecks": [],
+    "conflictingChecks": [],
+    "attempt": 2,
+    "maxAttempts": 2,
+    "provider": "example-provider",
+    "policyId": "example-policy",
+    "createdAt": "2026-09-17T09:05:00.000Z",
+    "responseSha256": "c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2",
+    "attemptHistory": [
+      {
+        "attempt": 1,
+        "trustStatus": "FAILED",
+        "reason": "correctable failure: missing date range constraint",
+        "responseSha256": "d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1"
+      }
+    ]
+  }
+}

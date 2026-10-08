@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Safi Companion — Phase 8 Live",
+  "version": "0.2.0",
+  "description": "Consentful, DOM-only Safi Companion beside ChatGPT and Gemini. No automatic send.",
+  "permissions": [],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://gemini.google.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://gemini.google.com/*"
+      ],
+      "js": ["dist/content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

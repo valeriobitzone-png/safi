@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Safi — EMBEDDED (desktop)</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --safi-text-primary: #0F172A;
+      --safi-text-secondary: #334155;
+      --safi-blue: #2563EB;
+      --safi-blue-dark: #1E3A8A;
+      --safi-blue-soft: #60A5FA;
+      --safi-surface: #F8FAFC;
+      --safi-border: #CBD5E1;
+      --safi-trust-verified: #2e7d32;
+      --safi-trust-uncertain: #b45309;
+      --safi-trust-failed: #c62828;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--safi-surface);
+      color: var(--safi-text-primary);
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+    }
+    .chat {
+      background: #ffffff;
+      border: 1px solid var(--safi-border);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+      max-width: 640px;
+      width: min(92vw, 640px);
+      padding: 1.4rem 1.5rem;
+    }
+    h1 { font-size: 1rem; font-weight: 600; margin: 0 0 1rem; color: var(--safi-blue-dark); }
+    .answer { font-size: 1rem; line-height: 1.6; margin: 0 0 0.6rem; }
+    .stamp-row { display: flex; justify-content: flex-end; }
+  </style>
+</head>
+<body>
+  <main class="chat" aria-label="Conversazione con l'AI, con verifica Safi">
+    <h1>La tua AI — Safi è accanto, non nel mezzo</h1>
+    <p class="answer">
+      Un DNS è come la rubrica telefonica di internet: tu chiedi per nome
+      (esempio.it) e la rubrica ti restituisce il numero (l'indirizzo IP)
+      per raggiungere il sito.
+    </p>
+    <div class="stamp-row">
+      <safi-stamp id="stamp" context="EMBEDDED" show-label></safi-stamp>
+    </div>
+  </main>
+
+  <script type="module">
+    import "./safi-stamp-mount.js";
+  </script>
+</body>
+</html>

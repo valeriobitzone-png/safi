@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safi.dev/schemas/v0.1/semantic-representation.json",
+  "title": "SemanticRepresentation",
+  "type": "object",
+  "required": ["kind", "goal", "task", "originalMessage", "translatedBy"],
+  "additionalProperties": false,
+  "properties": {
+    "kind": { "const": "semantic-representation/v0.1" },
+    "goal": { "type": "string" },
+    "task": { "type": "string" },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "originalMessage": { "type": "string" },
+    "interpretationNotes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "translatedBy": { "type": "string" }
+  }
+}

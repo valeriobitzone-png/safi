@@ -1,0 +1,68 @@
+name: Safi
+options:
+  bundleIdPrefix: dev.safi
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  Safi:
+    type: application
+    platform: iOS
+    sources:
+      - path: Safi
+    resources:
+      - path: Safi/WebResources
+    info:
+      path: Safi/Info.plist
+      properties:
+        CFBundleDisplayName: Safi
+        UILaunchScreen: {}
+        CFBundleURLTypes:
+          - CFBundleURLName: dev.safi.app
+            CFBundleURLSchemes: [safi]
+
+  SafiUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: SafiUITests
+    dependencies:
+      - target: Safi
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.safi.app.uitests
+        TEST_TARGET_NAME: Safi
+
+  SafiShareExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: SafiShareExtension
+    info:
+      path: SafiShareExtension/Info.plist
+      properties:
+        CFBundleDisplayName: Verifica con Safi
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).ShareViewController"
+          NSExtensionAttributes:
+          NSExtensionActivationRule:
+            NSExtensionActivationSupportsText: true
+            NSExtensionActivationSupportsWebPageWithMaxCount: 0
+            NSExtensionActivationSupportsWebURLWithMaxCount: 0
+
+schemes:
+  Safi:
+    build:
+      targets:
+        Safi: all
+        SafiUITests: [test]
+    test:
+      config: Debug
+      targets:
+        - SafiUITests

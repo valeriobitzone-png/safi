@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safi.dev/schemas/v0.1/verification-scope.json",
+  "title": "VerificationScope",
+  "type": "object",
+  "required": ["requiredChecks"],
+  "additionalProperties": false,
+  "properties": {
+    "requiredChecks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "optionalChecks": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

@@ -1,0 +1,1329 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Safi — Liquid Glass widget</title>
+  <!--
+    Safi floating widget — native Liquid Glass shell (Phase 6.2.1).
+
+    THE MATERIAL IS NATIVE: on macOS 26+ the shell applies
+    NSGlassEffectView (window-vibrancy apply_liquid_glass) and reparents
+    this WebView INSIDE the glass view. The desktop behind the window is
+    blurred by macOS, not by CSS. Therefore every surface here stays
+    TRANSPARENT: only faint overlays (sheen, hairline edge, satin fields)
+    are painted. There is deliberately NO backdrop-filter and no opaque
+    fill on any main surface.
+
+    UI machine (Phase 6.2.1, mandatory): COMPACT and EXPANDED only.
+    Green light toggles between them. Yellow always collapses. Red always
+    closes. Escape collapses. Every change reports the real surface size
+    to the native shell so the WINDOW itself resizes.
+
+    NOTE: this comment must never contain the two-character ASCII
+    sequence that terminates an HTML comment (dash dash greater-than),
+    and a static test enforces that (see tests/visual.test.ts).
+  -->
+  <style>
+    :root { color-scheme: light; }
+
+    /* Hard guard: anything marked hidden is UNRENDERED, always — innerText
+       stays empty and no debug/developer surface can ever leak into the
+       visible UI (Phase 6.2.2). */
+    [hidden] { display: none !important; }
+
+    /* Transparent chain: NSWindow → WebView → html → body → surfaces.
+       The native glass lives BEHIND this page; nothing here may paint
+       an opaque fill over it. */
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent !important;
+      overflow: hidden;
+    }
+    body {
+      font-family: system-ui, -apple-system, "SF Pro Text", "Segoe UI", sans-serif;
+      color: var(--glass-ink);
+      display: grid;
+      place-items: start;
+      padding: 0.35rem;
+      box-sizing: border-box;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Satin overlay: the native layer supplies the blur, this supplies
+       the BODY of the material (brief §8). */
+    .glass { position: relative; isolation: isolate; }
+    .glass::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.42), rgba(255,255,255,0.10) 38%, rgba(255,255,255,0) 60%),
+        radial-gradient(120% 70% at 50% -12%, rgba(255,255,255,0.28), rgba(255,255,255,0) 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glass::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 0.5px;
+      background: linear-gradient(160deg, rgba(255,255,255,0.5), rgba(255,255,255,0.08) 55%, rgba(120,138,128,0.14));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glass > * { position: relative; z-index: 1; }
+
+    /* Visual system v0.2 §13: the glass has BODY. The expanded panel sits
+       on a controlled perla tint over the native frost so text contrast
+       stays high on any wallpaper; the capsule stays lighter. */
+    /* Layer A (§6 + brief §8): the main surface — DENSE satin frost.
+       The perla tint sits at 94%: the wallpaper is present but never
+       readable through Safi, while the native layer keeps a soft
+       luminance hint of it at the edges.
+       NOTE: in the `background` shorthand a <color> is only legal as the
+       LAST layer. Writing the tint first made the whole declaration
+       invalid, so the panel rendered with NO tint at all (the "too
+       transparent" bug). The tint therefore closes the stack. */
+    #widget::before {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.16) 42%, rgba(226,235,248,0.30) 100%),
+        radial-gradient(120% 70% at 50% -12%, rgba(255,255,255,0.40), rgba(255,255,255,0) 55%),
+        var(--glass-tint);
+    }
+    #boot::before {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.42), rgba(255,255,255,0.10) 38%, rgba(255,255,255,0) 60%),
+        rgba(232, 242, 255, 0.72);
+    }
+
+    /* ---------- boot: transparent capsule, breathing sparkle ---------- */
+    #boot {
+      width: 64px;
+      padding: 0.5rem 0.55rem 0.35rem;
+      display: grid;
+      justify-items: center;
+      gap: 0.15rem;
+      border-radius: 999px;
+    }
+    #boot .row { display: flex; align-items: center; gap: 0.5rem; }
+    #boot .sparkle { color: #2f9e57; font-size: 0.8rem; animation: safi-breathe 1.8s ease-in-out infinite; }
+    #boot p { margin: 0; font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: #2f3e4b; }
+    #boot[hidden], #fatal[hidden] { display: none; }
+
+    /* ---------- fatal: same transparent surface, calm ---------- */
+    #fatal {
+      width: 260px;
+      padding: 0.9rem 1rem;
+      display: grid;
+      justify-items: center;
+      gap: 0.4rem;
+      text-align: center;
+      border-radius: 20px;
+    }
+    #fatal .sparkle { color: #c94b42; font-size: 0.95rem; }
+    #fatal p { margin: 0; font-size: 0.8rem; color: #101c27; opacity: 1; }
+    #fatal button {
+      border: none;
+      border-radius: 999px;
+      background: rgba(47, 158, 87, 0.20);
+      color: #0f6b3f;
+      font: inherit;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.32rem 0.9rem;
+      cursor: pointer;
+    }
+    #fatal details { font-size: 0.62rem; color: #2f3e4b; max-width: 100%; text-align: left; }
+    #fatal pre {
+      margin: 0.25rem 0 0;
+      padding: 0.4rem;
+      background: rgba(250, 252, 255, 0.82);
+      border-radius: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 110px;
+      overflow: auto;
+    }
+
+    /* ---------- compact: ONLY Safi (brief §3). The traffic lights are
+       gone from compact mode — redundant now that the mascot itself is
+       the state indicator. The floating figure IS the window: 48–64 px,
+       nothing else on the surface. Whole capsule = click target; the
+       drag region lives on the figure so drags never swallow clicks. */
+    #collapsed {
+      border: none;
+      /* Compact satin disc (brief §8): the capsule carries the same
+         frosted material as the panel, a touch lighter, so the mascot
+         never competes with the wallpaper behind it. */
+      background: rgba(226, 235, 248, 0.92);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55), 0 1px 4px rgba(22, 32, 43, 0.10);
+      border-radius: 999px;
+      /* Canonical compact SURFACE: exactly 76×76 (the 88×88 native
+         window minus the 12px shell padding) with a 60px mascot. */
+      box-sizing: border-box;
+      width: 76px;
+      height: 76px;
+      padding: 8px;
+      /* Positioned so the capsule always paints ABOVE any host
+         background (the desktop, the native glass, test underlays). */
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      -webkit-app-region: drag;
+    }
+    #collapsed:focus-visible { outline: 1.5px solid #2f9e57; outline-offset: 3px; }
+    /* Expanded-surface collapse control (brief §9): a discreet round
+       satin button mirroring the macOS amber light. Never a hidden
+       command. ---------- */
+    .collapse-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: none;
+      padding: 0;
+      -webkit-app-region: no-drag;
+      background: radial-gradient(circle at 35% 30%, #ffe9a8, #febc2e 65%);
+      color: #febc2e;
+      box-shadow: inset 0 0 1px rgba(0,0,0,0.18), 0 0 6px 0.5px currentColor;
+      cursor: pointer;
+      flex: 0 0 auto;
+      transition: transform 140ms ease, filter 140ms ease;
+    }
+    .collapse-dot:active { transform: scale(0.88); filter: brightness(1.1); }
+    .collapse-dot:focus-visible { outline: 1.5px solid #2f9e57; outline-offset: 2px; }
+    .tl {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      position: relative;
+      box-shadow: inset 0 0 1px rgba(0,0,0,0.18), 0 0 6px 0.5px currentColor;
+      cursor: pointer;
+      padding: 0;
+      border: none;
+      -webkit-appearance: none;
+      appearance: none;
+      font-size: 0;
+      transition: transform 140ms ease, filter 140ms ease;
+    }
+    .tl:active { transform: scale(0.88); filter: brightness(1.1); }
+    .tl:focus-visible { outline: 1.5px solid #2f9e57; outline-offset: 2px; }
+    #tl-close { background: radial-gradient(circle at 35% 30%, #ffb3ad, #ff5f57 65%); color: #ff5f57; }
+    #tl-min { background: radial-gradient(circle at 35% 30%, #ffe9a8, #febc2e 65%); color: #febc2e; }
+    #tl-max { background: radial-gradient(circle at 35% 30%, #a5f0b3, #28c840 65%); color: #28c840; }
+
+    /* Trust light on the compact figure (§2): the BODY STAYS PEARL —
+       the state arrives as an ambient glow BEHIND the production asset.
+       The glow lives on the HOST (a box-shadow), never as a CSS filter
+       on the asset: a filter would blur/recolor the delivered pixels. */
+    #collapsed[data-state="verified"] { box-shadow: 0 0 10px 1px rgba(52, 211, 153, 0.55); }
+    #collapsed[data-state="uncertain"] { box-shadow: 0 0 10px 1px rgba(251, 191, 36, 0.55); }
+    #collapsed[data-state="failed"] { box-shadow: 0 0 10px 1px rgba(248, 113, 113, 0.55); }
+    @keyframes safi-breathe {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { opacity: 0.62; }
+    }
+
+    /* ---------- Safi PRODUCTION ASSETS.
+       The delivered masters are the only source of pixels. The mascot
+       is ALWAYS sharp: no filter, no opacity, no blur on the asset or
+       on any ancestor — the frosting happens in the native layer and
+       in the surface tint only. */
+    :root {
+      /* Brief §8: frosted/satin, NOT a transparent window.
+         background influence 5–10% -> surface 90–95%. */
+      --glass-tint: rgba(226, 235, 248, 0.94);
+      --glass-ink: #16202b;
+      --glass-ink-soft: #3d4c5c;
+      --glass-line: rgba(22, 32, 43, 0.18);
+      --accent: #1f6f9c;
+      /* Board glow palette (reference board): idle #EAF0FF,
+         understanding #A5C8FF, translating #7DD3FC, verifying #C4B5FD,
+         verified #34D399, uncertain #FBBF24, failed #F87171. */
+      --safi-glow-idle: #EAF0FF;
+      --safi-glow-understanding: #A5C8FF;
+      --safi-glow-translating: #7DD3FC;
+      --safi-glow-verifying: #C4B5FD;
+      --safi-glow-verified: #34D399;
+      --safi-glow-uncertain: #FBBF24;
+      --safi-glow-failed: #F87171;
+      /* Input/textarea are DENSER than the main surface (brief §10):
+         milky frosted glass, never a transparent pane. */
+      --field-tint: rgba(248, 251, 255, 0.90);
+      --field-tint-focus: rgba(255, 255, 255, 0.96);
+      /* Atomic expand (fix 6.3 §5–6): the shell morphs through the
+         internal EXPANDING / COLLAPSING states — never a half panel. */
+      --glass-open-ease: cubic-bezier(0.2, 0.9, 0.25, 1);
+    }
+    /* The production asset: displayed at its natural aspect, never
+       filtered, never faded, never blurred. */
+    img[data-mascot] {
+      display: block;
+      object-fit: contain;
+      filter: none;
+      opacity: 1;
+      image-rendering: auto;
+      -webkit-user-drag: none;
+      user-select: none;
+    }
+    /* Brief §3 + §6: the compact visual is 60px (58–64 acceptance
+       band) inside the canonical 76×76 surface / 88×88 window. */
+    #collapsed img[data-mascot] { width: 60px; height: 60px; margin: 0; }
+    #collapsed[data-state="verified"] img[data-mascot] { animation: safi-mascot-bounce 380ms cubic-bezier(0.34, 1.56, 0.64, 1) 1; }
+    @keyframes safi-mascot-bounce {
+      0% { transform: translateY(0); }
+      45% { transform: translateY(-4.5px); }
+      100% { transform: translateY(0); }
+    }
+
+    /* ---------- expanded: the same glass grown, nothing painted white.
+       FIX 6.3 §7: FIXED target size, agreed with the native shell
+       (main.rs confirms the real inner size BEFORE the panel shows).
+       The open animation runs only after that confirmation: never a
+       half opened panel. ---------- */
+    #widget {
+      width: 384px;
+      height: 430px;
+      padding: 0.85rem 1.05rem 1.05rem;
+      box-sizing: border-box;
+      border-radius: 22px;
+      transform-origin: 26px 26px;
+      overflow: hidden auto;
+      scrollbar-width: none;
+    }
+    #widget::-webkit-scrollbar { display: none; }
+    /* Internal transition states: the panel animates ONLY when the
+       machine already reached EXPANDED (resize confirmed). */
+    #widget.glass-opening { animation: glass-open 240ms var(--glass-open-ease); }
+    #collapsed.glass-opening { animation: capsule-in 200ms ease-out; }
+    #widget[hidden], #collapsed.hidden { display: none; }
+    @keyframes glass-open {
+      from { opacity: 0; transform: scale(0.6); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes capsule-in {
+      from { opacity: 0; transform: scale(0.7); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #widget { animation: none; }
+      .tl, #sparkle { transition: none; }
+      #boot .sparkle, #sparkle.trust-VERIFIED { animation: none; }
+      #collapsed img[data-mascot] { animation: none !important; }
+    }
+
+    header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    header .brand { display: flex; align-items: center; gap: 0.45rem; min-width: 0; }
+    /* Brief §9: every functional text is at FULL contrast. Primary
+       >= 95%, secondary >= 80%, placeholder >= 70%, disabled >= 55%.
+       No functional text ever uses a 0.3–0.4 opacity. */
+    header .brand .name { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em; color: #101c27; opacity: 1; }
+    #safi-mascot-header { width: 44px; height: 44px; flex: 0 0 auto; display: block; }
+    .brand-text { display: grid; line-height: 1.25; }
+    .brand-text .tagline { font-size: 0.62rem; color: #2b3a49; opacity: 1; letter-spacing: 0.01em; }
+    /* Board header collapse control (§9) — amber, mirrors macOS. */
+    .collapse-dot { margin-left: auto; }
+    header .collapse-dot { margin-left: 0.5rem; }
+    #trust-line {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #1d2b38;
+      opacity: 1;
+      min-height: 1.15rem;
+      transition: color 400ms ease;
+    }
+    #trust-line .glyph { font-size: 0.8rem; }
+    #trust-line.VERIFIED { color: #0f6b3f; }
+    #trust-line.UNCERTAIN { color: #7a4d00; }
+    #trust-line.FAILED { color: #97281f; }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(34, 53, 44, 0.14) 18%, rgba(34, 53, 44, 0.14) 82%, transparent);
+      margin: 0.55rem 0;
+      border: none;
+    }
+
+    #modes { display: flex; align-items: center; gap: 0.6rem; font-size: 0.8rem; color: #1b2836; margin-bottom: 0.15rem; }
+    #modes button {
+      border: none;
+      background: rgba(252, 253, 255, 0.82);
+      padding: 0.28rem 0.85rem;
+      font: inherit;
+      color: var(--glass-ink);
+      cursor: pointer;
+      border-radius: 999px;
+      transition: color 200ms ease, background 200ms ease, box-shadow 200ms ease;
+    }
+    #modes button[aria-pressed="true"] {
+      color: #10202c;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.97);
+      box-shadow: inset 0 0 0 1px rgba(31, 111, 156, 0.45), 0 1px 4px rgba(22, 32, 43, 0.10);
+    }
+    #modes button:focus-visible { outline: 1.5px solid #2f9e57; outline-offset: 2px; }
+
+    /* Layer B (brief §10): input and textarea are DENSER than the main
+       surface — milky frosted glass, never a transparent pane. */
+    .field {
+      width: 100%;
+      box-sizing: border-box;
+      border: none;
+      border-radius: 14px;
+      background: var(--field-tint);
+      box-shadow: inset 0 1px 2px rgba(22, 32, 43, 0.10), inset 0 0 0 1px rgba(22, 32, 43, 0.16), 0 1px 4px rgba(22, 32, 43, 0.08);
+      padding: 0.5rem 0.65rem;
+      font: inherit;
+      font-size: 0.86rem;
+      color: var(--glass-ink);
+      resize: vertical;
+      min-height: 52px;
+      transition: box-shadow 200ms ease, background 200ms ease;
+    }
+    /* Placeholder >= 70% perceived opacity (brief §9). */
+    .field::placeholder { color: #4a5b6c; opacity: 1; }
+    .field:focus {
+      outline: none;
+      background: var(--field-tint-focus);
+      box-shadow: 0 0 0 1.5px rgba(31, 111, 156, 0.6), inset 0 1px 2px rgba(22, 32, 43, 0.06);
+    }
+
+    .ghost-action {
+      border: none;
+      background: none;
+      font: inherit;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #0f6b3f;
+      opacity: 1;
+      padding: 0.3rem 0.2rem;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: transform 140ms ease, filter 140ms ease;
+    }
+    .ghost-action:active { transform: scale(0.96); filter: brightness(1.05); }
+    .ghost-action:focus-visible { outline: 1.5px solid #2f9e57; outline-offset: 2px; }
+
+    /* Action chips row (board: Incolla / Immagine / Da link / …). */
+    .chip-row { display: flex; align-items: center; gap: 0.45rem; margin-top: 0.45rem; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      border: none;
+      border-radius: 999px;
+      background: rgba(250, 252, 255, 0.86);
+      box-shadow: inset 0 0 0 1px rgba(22, 32, 43, 0.16), 0 1px 3px rgba(22, 32, 43, 0.08);
+      font: inherit;
+      font-size: 0.72rem;
+      color: #23303c;
+      padding: 0.3rem 0.7rem;
+      cursor: pointer;
+      transition: background 200ms ease, transform 140ms ease;
+    }
+    .chip:hover { background: rgba(255, 255, 255, 0.97); }
+    .chip:active { transform: scale(0.97); }
+    .chip:focus-visible { outline: 1.5px solid #2f7fae; outline-offset: 2px; }
+
+    /* Board footer: Safi + reassurance copy. */
+    .board-footer {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-top: 0.6rem;
+      min-height: 1.5rem;
+    }
+    .board-footer img[data-mascot] { width: 26px; height: 26px; flex: 0 0 auto; }
+    .board-footer .footer-main { font-size: 0.76rem; font-weight: 700; color: #14212d; opacity: 1; }
+    .board-footer .footer-soft { margin-left: auto; font-size: 0.68rem; color: #34434f; opacity: 1; }
+
+    .actions-row { display: flex; justify-content: flex-end; align-items: center; margin-top: 0.15rem; min-height: 1.4rem; }
+
+    #microstate {
+      min-height: 1.1rem;
+      margin: 0.15rem 0 0;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: #1e2c39;
+      opacity: 1;
+      transition: opacity 300ms ease;
+    }
+    #microstate.pulse { animation: safi-pulse 1.6s ease-in-out infinite; }
+    @keyframes safi-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+
+    #result { margin-top: 0.1rem; }
+    #result.hidden { display: none; }
+    #answer { font-size: 0.86rem; color: #101c27; opacity: 1; white-space: pre-wrap; line-height: 1.45; }
+    .stamp-row { margin-top: 0.55rem; }
+
+    #statechip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 0.18rem 0.7rem;
+      background: transparent;
+      opacity: 1;
+    }
+    #statechip[data-trust="VERIFIED"] { background: rgba(134, 247, 193, 0.62); color: #0b5630; }
+    #statechip[data-trust="UNCERTAIN"] { background: rgba(255, 224, 138, 0.70); color: #6b4300; }
+    #statechip[data-trust="FAILED"] { background: rgba(255, 139, 139, 0.62); color: #6f1c17; }
+    #statechip[hidden] { display: none; }
+
+    .consentrow { display: flex; align-items: center; gap: 0.45rem; font-size: 0.74rem; color: #2b3a49; margin-top: 0.5rem; }
+    .consentrow input { accent-color: #2f9e57; }
+    #dev { margin-top: 0.5rem; }
+    #dev.hidden { display: none; }
+    #devdump {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.66rem;
+      background: rgba(250, 252, 255, 0.80);
+      border-radius: 12px;
+      padding: 0.55rem;
+      max-height: 240px;
+      overflow: auto;
+      white-space: pre-wrap;
+      color: #2b3a49;
+    }
+  </style>
+</head>
+<body>
+  <div id="boot" class="glass" role="status">
+    <div class="row">
+      <img id="safi-mascot-boot" data-mascot data-mascot-tier="micro" src="/mascot/micro/safi-micro-idle.png" alt="" aria-hidden="true" width="38" height="38" />
+    </div>
+  </div>
+
+  <div id="fatal" class="glass" role="alert" hidden>
+    <img id="safi-mascot-fatal" data-mascot data-mascot-tier="micro" src="/mascot/micro/safi-micro-failed.png" alt="" aria-hidden="true" width="36" height="36" />
+    <p>Safi non è riuscito ad avviarsi</p>
+    <button id="retry" type="button">Riprova</button>
+    <details>
+      <summary>Dettagli sviluppatore</summary>
+      <pre id="errcode"></pre>
+    </details>
+  </div>
+
+  <!-- COMPACT (brief §3): ONLY the mascot. Click anywhere on it →
+       EXPANDED; Escape / collapse control / outside click → COMPACT. -->
+  <div id="collapsed" class="hidden" role="button" aria-label="Safi — apri" title="Safi">
+    <img id="safi-mascot-compact" data-mascot data-mascot-tier="micro" src="/mascot/micro/safi-micro-idle.png" alt="" aria-hidden="true" width="60" height="60" />
+  </div>
+
+  <!-- EXPANDED: the same glass grown; window resize is native. -->
+  <section id="widget" class="glass" role="region" aria-label="Safi widget" hidden>
+    <header>
+      <div class="brand">
+        <img id="safi-mascot-header" data-mascot data-mascot-tier="micro" src="/mascot/micro/safi-micro-idle.png" alt="" aria-hidden="true" width="44" height="44" />
+        <div class="brand-text">
+          <span class="name">✦ Safi</span>
+          <span class="tagline">Capisce. Traduce. Verifica.</span>
+        </div>
+      </div>
+      <div id="trust-line" aria-live="polite"></div>
+      <button id="collapse" class="collapse-dot" type="button" aria-label="Riduci Safi" title="Riduci Safi"></button>
+    </header>
+
+    <hr class="divider" />
+
+    <div id="modes" role="group" aria-label="Modalità">
+      <button id="mode-ask" aria-pressed="true">✦ Ask</button>
+      <button id="mode-verify" aria-pressed="false">✓ Verify</button>
+    </div>
+
+    <div id="ask-pane">
+      <textarea id="speak" class="field" rows="2" aria-label="Parla normalmente" placeholder="Parla normalmente…"></textarea>
+      <div class="actions-row">
+        <button id="send" class="ghost-action">✦ chiedi</button>
+      </div>
+      <div class="chip-row" role="group" aria-label="Azioni rapide">
+        <button type="button" class="chip" data-chip="paste">⧉ Incolla</button>
+        <button type="button" class="chip" data-chip="image">🖼 Immagine</button>
+        <button type="button" class="chip" data-chip="link">⊕ Da link</button>
+        <button type="button" class="chip" data-chip="more" aria-label="Altre azioni">…</button>
+      </div>
+    </div>
+
+    <div id="verify-pane" class="hidden">
+      <textarea id="paste-answer" class="field" rows="2" aria-label="Verifica una risposta" placeholder="Incolla la risposta da verificare…"></textarea>
+      <div class="actions-row">
+        <button id="verify" class="ghost-action">✓ verifica</button>
+      </div>
+      <div class="chip-row" role="group" aria-label="Azioni rapide">
+        <button type="button" class="chip" data-chip="paste">⧉ Incolla</button>
+        <button type="button" class="chip" data-chip="more" aria-label="Altre azioni">…</button>
+      </div>
+    </div>
+
+    <p id="microstate" role="status" aria-live="polite"></p>
+
+    <div class="board-footer" aria-hidden="false">
+      <img id="safi-mascot-footer" data-mascot data-mascot-tier="micro" src="/mascot/micro/safi-micro-idle.png" alt="" aria-hidden="true" width="26" height="26" />
+      <span class="footer-main">Pronto ad aiutarti.</span>
+      <span class="footer-soft">Safi è sempre con te.</span>
+    </div>
+
+    <div id="result" class="hidden">
+      <hr class="divider" />
+      <div id="answer" aria-live="polite"></div>
+      <div class="stamp-row">
+        <span id="statechip" data-trust="" hidden></span>
+        <safi-stamp id="stamp" context="EMBEDDED" hidden></safi-stamp>
+      </div>
+    </div>
+
+    <div class="consentrow" id="devrow" hidden>
+      <input type="checkbox" id="devmode" />
+      <label for="devmode" style="margin: 0;">Modalità developer</label>
+    </div>
+    <div id="dev" class="hidden">
+      <div id="devdump"></div>
+    </div>
+  </section>
+
+  <script type="module">
+    /* Visual-test hook: #wp=1 paints a blue/purple test pattern as an
+       UNDERLAY (body::before, z-index below every app surface) so the
+       page's translucency is measurable in headless screenshots. It must
+       NOT touch html/body background itself: those stay transparent so
+       the native glass (NSGlassEffectView) shows the real desktop. In
+       headless Chrome (no native glass) the underlay stands in for the
+       desktop. Local testing only. */
+    if (new URLSearchParams(location.hash.replace(/^#/, "")).get("wp") === "1") {
+      const style = document.createElement("style");
+      // Hard-edged 40px blue/purple bands: the acceptance pattern. A real
+      // element PREPENDED to body: it paints below every later fixed
+      // surface (same z-index, DOM order), standing in for the desktop.
+      style.textContent =
+        "#safi-test-underlay{position:fixed;inset:0;z-index:0;background:repeating-linear-gradient(90deg,#3c64d8 0 40px,#6b8cf0 40px 80px,#9b3fd0 80px 120px,#b566e0 120px 160px);}";
+      document.head.append(style);
+      const underlay = document.createElement("div");
+      underlay.id = "safi-test-underlay";
+      document.body.prepend(underlay);
+    }
+
+    /* Developer diagnostics (Phase 6.1 contract). Release hard guard
+       (Phase 6.2.2): diagnostic text is NEVER mounted into the visible
+       DOM. Everything lives on window.__SAFI_DIAG__ / console; the
+       Developer View row exists only when the host reports devMode
+       (dev builds set SAFI_DEV=1; release shells never do) or when a
+       developer explicitly sets window.__SAFI_DIAG_DEV__ = true in a
+       plain-browser session. */
+    const DIAG = (window.__SAFI_DIAG__ = {
+      pageUrl: location.href.replace(/#.*$/, ""),
+      documentReadyState: document.readyState,
+      scripts: [],
+      customElements: {},
+      bridge: "unknown",
+      errors: [],
+      unhandledRejections: 0,
+      bootCompleted: false,
+      devMode: false,
+    });
+    window.addEventListener("error", (e) => {
+      DIAG.errors.push(String(e.message ?? e.error));
+      if (!DIAG.bootCompleted) showFatal("SCRIPT-ERROR", e.message ?? String(e.error));
+    });
+    window.addEventListener("unhandledrejection", (e) => {
+      DIAG.unhandledRejections += 1;
+      DIAG.errors.push(`unhandledrejection: ${e.reason}`);
+      if (!DIAG.bootCompleted) showFatal("UNHANDLED-REJECTION", String(e.reason));
+    });
+
+    const $ = (id) => document.getElementById(id);
+    const bootEl = $("boot");
+    const fatalEl = $("fatal");
+    const collapsedEl = $("collapsed");
+    const widgetEl = $("widget");
+    const microEl = $("microstate");
+    const chipEl = $("statechip");
+    const stampEl = $("stamp");
+    const resultEl = $("result");
+    const devEl = $("dev");
+    const trustLine = $("trust-line");
+
+    function showFatal(code, message) {
+      if (typeof window.setMascotState === "function") setMascotState("failed"); // Safi shows it before any word is read
+      bootEl.hidden = true;
+      widgetEl.hidden = true;
+      collapsedEl.classList.add("hidden");
+      fatalEl.hidden = false;
+      $("errcode").textContent = `${message ?? "errore sconosciuto"} [${code}]`;
+    }
+    $("retry").addEventListener("click", () => location.reload());
+
+    const hashParams = new URLSearchParams(location.hash.replace(/^#/, ""));
+    const SESSION_TOKEN = hashParams.get("t") ?? "";
+    if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+
+    /* ---------- UI state machine (Phase 6.2.1 + fix 6.3 §5–7) ----------
+       COMPACT ⇅ EXPANDED with the ATOMIC internal transitions EXPANDING
+       and COLLAPSING: the native shell resizes the window FIRST and
+       confirms (surface-ack); only then does the page reveal the panel.
+       Never a half-opened panel, never a late resize. */
+    const UI = (window.__SAFI_UI__ = { mode: "BOOT", transitions: [] });
+    /* FIXED expanded geometry (§7): 384×430 surface inside an exact
+       396×442 native window (+12 shell padding) — page and shell agree
+       on the same numbers, so the first resize is the final one.
+
+       CANONICAL COMPACT (brief §6): ONE native size, 88×88, shared by
+       SURFACE_SIZES, tauri.conf.json and main.rs. The compact surface
+       is 88−12 = 76×76 (the mascot visual is 60px, inside the 58–64
+       acceptance band), the native window is exactly 88×88. The old
+       mismatch (92×88 page vs 80×80 shell) is gone: `actual == target`
+       is asserted before state = COMPACT is ever set. */
+    const SURFACE_SIZES = {
+      expanded: { w: 384, h: 430 },
+      expandedWindow: { w: 396, h: 442 },
+      compact: { w: 76, h: 76 },
+      compactWindow: { w: 88, h: 88 },
+    };
+
+    /* Collapse control (§9): the amber dot in the panel header. */
+    $("collapse").addEventListener("click", () => collapse());
+
+    function surfaceRect() {
+      const surface =
+        !fatalEl.hidden ? fatalEl :
+        !bootEl.hidden ? bootEl :
+        UI.mode === "EXPANDED" || UI.mode === "EXPANDING" ? widgetEl :
+        collapsedEl;
+      /* Every mode reports the AGREED canonical target, never a live
+         measurement of a hidden element. During COLLAPSING the compact
+         capsule is still `display:none`, so measuring it returned 0×0
+         and the shell resized the window to 12×12 — the classic
+         "expanded → compact si rompe/taglia" bug. The transition
+         states now report the size the window is RESIZING TO. */
+      if (UI.mode === "EXPANDED" || UI.mode === "EXPANDING") {
+        return { ...SURFACE_SIZES.expanded, fixed: true };
+      }
+      if (UI.mode === "COMPACT" || UI.mode === "COLLAPSING" || UI.mode === "CLOSE") {
+        return { ...SURFACE_SIZES.compact, fixed: true };
+      }
+      const rect = surface.getBoundingClientRect();
+      return { w: Math.ceil(rect.width), h: Math.ceil(rect.height) };
+    }
+
+    function notifySize() {
+      const { w, h, ...rest } = surfaceRect();
+      DIAG.lastSurface = { width: w, height: h, mode: UI.mode, ...rest };
+      UI.transitions.push({ mode: UI.mode, width: w, height: h, at: Date.now() });
+      fetch("/api/host/surface", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-safi-session": SESSION_TOKEN },
+        body: JSON.stringify({ width: w, height: h, mode: UI.mode }),
+      }).catch(() => { /* plain-browser context: nothing to resize */ });
+    }
+    /* §7: the window size is verified against the AGREED target with a
+       small tolerance for OS scaling. Polls the REAL inner size. */
+    function windowReached(w, h, tolerance = 10) {
+      return Math.abs(window.innerWidth - w) <= tolerance &&
+             Math.abs(window.innerHeight - h) <= tolerance;
+    }
+    /* Brief §6: COMPACT is only entered when the native window is
+       EXACTLY the canonical target (1px tolerance for OS rounding).
+       The measured actual size is recorded for the acceptance report. */
+    function compactSizeConfirmed() {
+      const target = SURFACE_SIZES.compactWindow;
+      const actual = { w: window.innerWidth, h: window.innerHeight };
+      const ok = Math.abs(actual.w - target.w) <= 1 && Math.abs(actual.h - target.h) <= 1;
+      DIAG.compactActual = { ...actual, targetW: target.w, targetH: target.h, confirmed: ok };
+      return ok;
+    }
+    async function waitForWindow(w, h, ms) {
+      const deadline = Date.now() + ms;
+      while (Date.now() < deadline) {
+        if (windowReached(w, h)) { DIAG.surfaceVerified = { w: window.innerWidth, h: window.innerHeight }; return true; }
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      DIAG.surfaceVerified = { w: window.innerWidth, h: window.innerHeight, confirmed: false };
+      return false;
+    }
+
+    function setMode(mode) {
+      UI.mode = mode;
+      collapsedEl.classList.toggle("hidden", mode !== "COMPACT");
+      // The expanded panel hides via the hidden ATTRIBUTE (global [hidden]
+      // rule): a bare "hidden" class has no display rule and would keep
+      // the whole panel rendered behind the compact capsule.
+      widgetEl.hidden = mode !== "EXPANDED";
+      document.body.dataset.safiMode = mode;
+    }
+
+    /* ATOMIC expand (§5–6): COMPACT → EXPANDING → (shell resizes,
+       page VERIFIES the real window size) → EXPANDED. The panel is
+       never visible during the transition; the reveal animation runs
+       only on the final, verified geometry. */
+    let pendingCollapse = false;
+    async function expand() {
+      if (UI.mode === "EXPANDED" || UI.mode === "EXPANDING") return;
+      UI.mode = "EXPANDING";
+      DIAG.transition = "EXPANDING";
+      DIAG.sawExpanding = true;
+      document.body.dataset.safiMode = "EXPANDING";
+      collapsedEl.classList.add("hidden");
+      const { w, h } = SURFACE_SIZES.expandedWindow;
+      notifySize(); // EXPANDING hint: the shell grows the window NOW
+      await waitForWindow(w, h, 700);
+      setMode("EXPANDED");
+      DIAG.transition = "EXPANDED";
+      widgetEl.classList.remove("glass-opening");
+      void widgetEl.offsetWidth; // restart the reveal animation cleanly
+      widgetEl.classList.add("glass-opening");
+      notifySize(); // EXPANDED hint with the same fixed numbers
+      $("speak")?.focus();
+      // A collapse requested WHILE the panel was still growing is not
+      // lost: it runs as soon as EXPANDED is real (no dead input).
+      if (pendingCollapse) { pendingCollapse = false; collapse(); }
+    }
+
+    /* ATOMIC collapse (brief §5): the EXACT mirror of expand.
+       EXPANDED → COLLAPSING → the native window is resized to the
+       canonical COMPACT TARGET → WAIT for the native size confirmation
+       → reveal the compact mascot → COMPACT.
+
+       Ordering guarantees (acceptance):
+         - the resize is INITIATED before the panel is hidden, so the
+           panel is never hidden while the window is still large;
+         - the compact mascot is revealed only AFTER the native size
+           is confirmed, so it never appears inside a large window;
+         - state = COMPACT is set only when actual == target. */
+    async function collapse() {
+      if (UI.mode === "COMPACT" || UI.mode === "COLLAPSING") return;
+      if (UI.mode === "EXPANDING") { pendingCollapse = true; return; }
+      UI.mode = "COLLAPSING";
+      DIAG.transition = "COLLAPSING";
+      // Latch: the COLLAPSING state is short-lived by design, so the
+      // acceptance capture waits on this flag, never on a poll that can
+      // miss the frame.
+      DIAG.sawCollapsing = true;
+      document.body.dataset.safiMode = "COLLAPSING";
+      const { w, h } = SURFACE_SIZES.compactWindow;
+      notifySize(); // 1) the native resize STARTS here (canonical 88×88)
+      // 2) hide the panel immediately after the resize was initiated:
+      //    the window is already shrinking, so no clipped frame of a
+      //    full-size panel can survive.
+      widgetEl.hidden = true;
+      /* Visual-capture hook (like `wp=1`): holds the COLLAPSING state so
+         the acceptance screenshot can land ON the transition frame. It
+         only delays the reveal; the shipped behaviour is unchanged. */
+      if (hashParams.get("transitionHold") === "1") await sleep(1500);
+      // 3) wait for the native size confirmation, retrying the hint if
+      //    the shell has not landed yet.
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      // With a native shell the resize lands in a few frames: wait for
+      // the REAL confirmation (the acceptance condition). Without one
+      // (plain browser) there is nothing to wait for, so the fallback
+      // is short instead of stalling the machine.
+      const deadline = Date.now() + (DIAG.nativeShell === true ? 2000 : 300);
+      let confirmed = false;
+      DIAG.collapseStart = Date.now();
+      DIAG.collapseTicks = 0;
+      while (Date.now() < deadline) {
+        DIAG.collapseStep = "waiting";
+        DIAG.collapseTicks += 1;
+        if (compactSizeConfirmed()) { confirmed = true; break; }
+        notifySize();
+        await sleep(60);
+      }
+      if (!confirmed) { notifySize(); await sleep(DIAG.nativeShell === true ? 120 : 40); compactSizeConfirmed(); }
+      DIAG.collapseStep = "confirmed";
+      DIAG.collapseConfirmed = confirmed;
+      // 4) reveal the compact mascot, 5) and only now COMPACT.
+      setMode("COMPACT");
+      DIAG.transition = "COMPACT";
+      DIAG.collapseStep = "done";
+      collapsedEl.classList.remove("glass-opening");
+      void collapsedEl.offsetWidth;
+      collapsedEl.classList.add("glass-opening");
+      auditMascotTiers();
+      notifySize(); // COMPACT hint (canonical compact window restored)
+    }
+
+    function closeToShell() {
+      setMode("CLOSE");
+      notifySize(); // the native shell hides the window
+    }
+
+    /* The shell re-shows the window (tray / shortcut). */
+    window.addEventListener("safi-show", () => {
+      setMode("COMPACT");
+      notifySize();
+    });
+
+    async function api(path, body) {
+      return fetch(path, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-safi-session": SESSION_TOKEN },
+        body: JSON.stringify(body),
+      });
+    }
+
+    async function connectToBridge() {
+      try {
+        const res = await fetch("/api/host/info", {
+          headers: { "x-safi-session": SESSION_TOKEN },
+        });
+        DIAG.bridge = res.ok ? "ok" : `http-${res.status}`;
+        if (!res.ok) return false;
+        try {
+          const info = await res.json();
+          DIAG.glass = info?.host?.nativeGlass === true ? "OK" : "CSS-ONLY";
+          // A REAL native shell resizes the window for our hints. In a
+          // plain browser nothing resizes: waiting for a confirmation
+          // that can never arrive would stall the machine.
+          DIAG.nativeShell = info?.host?.nativeShell === true;
+          DIAG.devMode = info?.host?.devMode === true;
+          applyDevGate();
+        } catch { DIAG.glass = "UNKNOWN"; }
+        await mascotReady;
+        enterWidget();
+        return true;
+      } catch (error) {
+        DIAG.bridge = `unreachable: ${error.message}`;
+        return false;
+      }
+    }
+
+    /* Pipeline states (Visual Contract labels, unchanged). */
+    /* ---------- pipeline states ---------- */
+    const STATE_LABELS = {
+      UNDERSTANDING: "Safi sta capendo…",
+      TRANSLATING: "Safi sta traducendo…",
+      WAITING_AI: "Attendo la risposta dell'AI…",
+      HUMANIZING: "Safi sta umanizzando…",
+      VERIFYING: "Safi sta verificando…",
+      CORRECTING: "Safi sta correggendo…",
+      VERIFIED: "Verificato",
+      UNCERTAIN: "Non certo",
+      FAILED: "Problema rilevato",
+    };
+    const TRUST_GLYPHS = { VERIFIED: "●", UNCERTAIN: "◐", FAILED: "○" };
+    /* Board glow palette (reconciled with the production reference board):
+       the tint is applied to the SURFACE, never to the delivered asset. */
+    const TRUST_COLORS = { VERIFIED: "#34D399", UNCERTAIN: "#FBBF24", FAILED: "#F87171" };
+
+    /* PRODUCTION ASSETS ARE THE ONLY SOURCE OF SAFI PIXELS.
+       The archived procedural figure — its face curves, eye and mouth
+       primitives and the raster generator — is gone from this runtime:
+       nothing here draws it. Every visible Safi is an <img> pointing at
+       one of the 21 delivered masters in golden/production-mascot.
+
+       Optical mapping (mandatory, never violated):
+         rendered size   0–72px  -> MICRO (64px master)
+         rendered size  73–180px -> UI   (128px master)
+         rendered size   >180px  -> HERO (512px master)
+       HERO is never downscaled to fake a small widget. The tier is
+       declared per host in the markup (data-mascot-tier) and the
+       optical guard below FAILS LOUDLY if a host's rendered size and
+       its declared tier disagree. */
+    const MASCOT_STATES = ["idle", "understanding", "translating", "verifying", "verified", "uncertain", "failed"];
+    const MASCOT_TIERS = { micro: 64, ui: 128, hero: 512 };
+    const mascotReady = Promise.resolve();
+
+    function tierForSize(px) {
+      if (px <= 72) return "micro";
+      if (px <= 180) return "ui";
+      return "hero";
+    }
+    function mascotSrc(tier, state) {
+      return `/mascot/${tier}/safi-${tier}-${state}.png`;
+    }
+    /* Every host is verified against the optical mapping: the declared
+       tier must be the one the rendered size requires. */
+    function auditMascotTiers() {
+      const bad = [];
+      for (const host of document.querySelectorAll("[data-mascot]")) {
+        const declared = host.dataset.mascotTier;
+        const rect = host.getBoundingClientRect();
+        const px = Math.max(rect.width, rect.height);
+        if (!px) continue;
+        const wanted = tierForSize(px);
+        if (declared !== wanted) bad.push(`${host.id || "mascot"}: ${Math.round(px)}px -> ${wanted} (declared ${declared})`);
+      }
+      DIAG.mascotTierAudit = bad;
+      if (bad.length) DIAG.errors.push(`mascot optical mapping violated: ${bad.join("; ")}`);
+    }
+    window.addEventListener("resize", () => auditMascotTiers());
+
+    /* Microcopy per il personaggio (brief finale): Safi parla di sé.
+       Only the Developer Inspector may ever render these strings. */
+    const MASCOT_LINES = {
+      verifying: "Safi sta verificando…",
+      uncertain: "Safi non è ancora sicuro.",
+      failed: "Safi ha trovato un problema.",
+    };
+    window.setMascotState = setMascotState; // early-error path can reach it
+    function setMascotState(state) {
+      const known = MASCOT_STATES;
+      let s = String(state || "idle").toLowerCase();
+      // Pipeline states without a dedicated master (waiting, humanizing,
+      // correcting) ride the attentive production asset — never a blank.
+      if (!known.includes(s)) s = "understanding";
+      DIAG.mascot = s;
+      for (const host of document.querySelectorAll("[data-mascot]")) {
+        const tier = host.dataset.mascotTier;
+        if (!tier || !MASCOT_TIERS[tier]) continue;
+        const next = mascotSrc(tier, s);
+        // Swap the production master in place: the asset itself is NEVER
+        // modified, recolored or redrawn — only the file changes.
+        if (host.getAttribute("src") !== next) host.setAttribute("src", next);
+        host.setAttribute("data-state", s);
+      }
+      // The compact HOST carries the trust glow (box-shadow), so the
+      // production asset itself is never filtered or faded.
+      collapsedEl.setAttribute("data-state", s);
+      auditMascotTiers();
+      // The compact figure NEVER renders developer microcopy — the state
+      // is announced by glow + face + aria-label only (§10).
+      DIAG.mascotLine = MASCOT_LINES[s] ?? null;
+    }
+
+    let compactTimer = undefined;
+
+    function setMicro(text) {
+      microEl.textContent = text;
+      microEl.classList.toggle("pulse", Boolean(text) && !(text in TRUST_GLYPHS));
+      DIAG.spark = Boolean(text) && !(text in TRUST_GLYPHS);
+      const stateName = Object.entries(STATE_LABELS).find(([, label]) => label === text)?.[0];
+      if (stateName && !TRUST_GLYPHS[stateName]) {
+        setMascotState(stateName.toLowerCase());
+      } else if (!text) {
+        microEl.hidden = true;
+      }
+    }
+
+    function renderTrust(state) {
+      DIAG.trust = state;
+      setMascotState(state.toLowerCase());
+      const label = STATE_LABELS[state] ?? state;
+      trustLine.classList.remove("VERIFIED", "UNCERTAIN", "FAILED");
+      trustLine.classList.add(state);
+      trustLine.innerHTML = "";
+      const glyph = document.createElement("span");
+      glyph.className = "glyph";
+      glyph.textContent = TRUST_GLYPHS[state];
+      const text = document.createElement("span");
+      text.textContent = label;
+      trustLine.append(glyph, text);
+      chipEl.hidden = false;
+      chipEl.dataset.trust = state;
+      chipEl.innerHTML = "";
+      const chipGlyph = document.createElement("span");
+      chipGlyph.textContent = TRUST_GLYPHS[state];
+      const chipText = document.createElement("span");
+      chipText.textContent = `${label} · ${checksLabel()}`;
+      chipEl.append(chipGlyph, chipText);
+      collapsedEl.setAttribute("aria-label", `Safi — ${label}. Espandi Safi`);
+      function checksLabel() {
+        const checks = window.__lastCertificate?.checks;
+        if (!Array.isArray(checks) || checks.length === 0) return "controlli non disponibili";
+        const passed = checks.filter((c) => c.result === "PASS").length;
+        return `${passed}/${checks.length} controlli`;
+      }
+    }
+
+    function setState(state) {
+      const isTrust = state === "VERIFIED" || state === "UNCERTAIN" || state === "FAILED";
+      if (isTrust) {
+        DIAG.trust = state;
+        renderTrust(state);
+        clearTimeout(compactTimer);
+        compactTimer = setTimeout(() => collapse(), 8000);
+      } else {
+        chipEl.hidden = true;
+        trustLine.classList.remove("VERIFIED", "UNCERTAIN", "FAILED");
+        trustLine.innerHTML = "";
+        setMicro(STATE_LABELS[state] ?? state);
+      }
+    }
+
+    /* State machine (brief §9): click on the compact figure → EXPANDED.
+       Back to COMPACT: Escape, the amber control in the panel header,
+       or a click outside any Safi surface. No dead-end state exists. */
+    collapsedEl.addEventListener("click", () => expand());
+    /* Escape always returns to COMPACT — INCLUDING while the panel is
+       still growing. A key that lands during EXPANDING is queued and
+       executed as soon as EXPANDED is real, never dropped: no input can
+       leave the machine in a state the user cannot leave. */
+    window.addEventListener("keydown", (e) => {
+      DIAG.lastKey = { key: e.key, mode: UI.mode, at: Date.now() };
+      if (e.key === "Escape" && (UI.mode === "EXPANDED" || UI.mode === "EXPANDING")) collapse();
+    });
+    /* Click outside any Safi surface → COMPACT (§9): any mousedown that
+       does not start inside the expanded panel goes home. The compact
+       capsule itself is never the expanded surface, so it is exempt. */
+    window.addEventListener("mousedown", (e) => {
+      if (UI.mode !== "EXPANDED" && UI.mode !== "EXPANDING") return;
+      if (!widgetEl.contains(e.target)) collapse();
+    });
+    /* Keyboard path for the state machine (WCAG): Enter or Space toggles
+       COMPACT <-> EXPANDED when the window has focus. */
+    window.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") &&
+          !(e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLInputElement || e.target instanceof HTMLButtonElement)) {
+        if (UI.mode === "COMPACT") expand();
+        else if (UI.mode === "EXPANDED") collapse();
+      }
+    });
+
+    function setMode_(mode) {
+      const ask = mode === "ask";
+      $("mode-ask").setAttribute("aria-pressed", String(ask));
+      $("mode-verify").setAttribute("aria-pressed", String(!ask));
+      $("ask-pane").classList.toggle("hidden", !ask);
+      $("verify-pane").classList.toggle("hidden", ask);
+      $("result").classList.add("hidden");
+      stampEl.hidden = true;
+      chipEl.hidden = true;
+      setMicro("");
+      notifySize();
+    }
+    $("mode-ask").addEventListener("click", () => setMode_("ask"));
+    $("mode-verify").addEventListener("click", () => setMode_("verify"));
+
+    /* Developer View gate: visible only when the HOST (release shell:
+       never) or an explicit browser-console backdoor allows it. */
+    function devAllowed() {
+      return DIAG.devMode === true || window.__SAFI_DIAG_DEV__ === true;
+    }
+    function applyDevGate() {
+      const devRow = $("devrow");
+      const devPane = $("dev");
+      if (devRow) devRow.hidden = !devAllowed();
+      if (devPane) { devPane.classList.toggle("hidden", true); }
+      if (!devAllowed()) { const b = $("devmode"); if (b) b.checked = false; }
+    }
+
+    $("devmode").addEventListener("change", (e) => {
+      if (!devAllowed()) { e.target.checked = false; return; } // release hard guard
+      devEl.classList.toggle("hidden", !e.target.checked);
+      if (e.target.checked && window.__lastTranslation) dumpDev();
+    });
+
+    function dumpDev() {
+      if (!devAllowed()) return; // never mount diagnostic text in release
+      $("devdump").textContent = JSON.stringify(
+        {
+          intent: window.__lastTranslation?.frame ?? null,
+          translation: window.__lastTranslation?.semantic ?? null,
+          checks: window.__lastCertificate?.checks ?? null,
+          certificate: window.__lastCertificate ?? null,
+          diagnostics: DIAG,
+        },
+        null,
+        2,
+      );
+    }
+
+    function showOutcome(data) {
+      window.__lastCertificate = data.certificate;
+      if (data.kind === "result" && data.certificate) {
+        $("answer").textContent = data.answer;
+        stampEl.hidden = false;
+        stampEl.source = data.certificate;
+        resultEl.classList.remove("hidden");
+        setState(data.certificate.trustStatus);
+      } else {
+        $("answer").textContent = data.answer ?? "";
+        resultEl.classList.remove("hidden");
+        chipEl.hidden = true;
+      }
+      if (devAllowed() && $("devmode").checked) dumpDev();
+    }
+
+    /* Quick-action chips: wired for what exists today, honest for the
+       rest — no dead buttons pretending to work. */
+    for (const chip of document.querySelectorAll("[data-chip]")) {
+      chip.addEventListener("click", () => {
+        const kind = chip.dataset.chip;
+        if (kind === "paste") {
+          navigator.clipboard?.readText?.().then((text) => {
+            if (!text) return;
+            const pane = chip.closest("#ask-pane") ? "speak" : "paste-answer";
+            $(pane).value = ( $(pane).value ? $(pane).value + "\n" : "" ) + text;
+          }).catch(() => setMicro("Permesso clipboard non disponibile."));
+        } else if (kind === "image" || kind === "link") {
+          setMicro("Azione non ancora disponibile in questa alpha.");
+        }
+      });
+    }
+
+    $("send").addEventListener("click", async () => {
+      const message = $("speak").value.trim();
+      if (!message) { setMicro("Scrivi prima qualcosa da chiedere."); return; }
+      resultEl.classList.add("hidden");
+      stampEl.hidden = true;
+      chipEl.hidden = true;
+      setState("UNDERSTANDING");
+      try {
+        setState("TRANSLATING");
+        setState("WAITING_AI");
+        const res = await api("/api/host/ask", { message });
+        const data = await res.json();
+        if (!res.ok) { chipEl.hidden = true; setMicro(`Errore: ${data.error ?? res.status}`); return; }
+        setState("HUMANIZING");
+        setState("VERIFYING");
+        showOutcome(data);
+        window.__lastTranslation = data.translation;
+      } catch (error) {
+        chipEl.hidden = true;
+        setMicro(`Errore: ${error.message}`);
+      }
+    });
+
+    $("verify").addEventListener("click", async () => {
+      const answer = $("paste-answer").value.trim();
+      if (!answer) { setMicro("Incolla prima la risposta da verificare."); return; }
+      resultEl.classList.add("hidden");
+      stampEl.hidden = true;
+      chipEl.hidden = true;
+      setState("VERIFYING");
+      try {
+        const res = await api("/api/host/verify", { answer });
+        const data = await res.json();
+        if (!res.ok) { chipEl.hidden = true; setMicro(`Errore: ${data.error ?? res.status}`); return; }
+        showOutcome(data);
+      } catch (error) {
+        chipEl.hidden = true;
+        setMicro(`Errore: ${error.message}`);
+      }
+    });
+
+    /* Boot: transparent capsule immediately; COMPACT only after the
+       bridge really answered. */
+    const connected = await connectToBridge();
+    if (!connected) {
+      let attempts = 0;
+      const timer = setInterval(async () => {
+        attempts += 1;
+        if (await connectToBridge()) clearInterval(timer);
+        else if (attempts >= 20) {
+          clearInterval(timer);
+          showFatal("BRIDGE-UNREACHABLE", "il bridge locale non risponde");
+        }
+      }, 1500);
+    }
+
+    function enterWidget() {
+      DIAG.bootCompleted = true;
+      DIAG.hashKeys = [...hashParams.keys()];
+      DIAG.open = hashParams.get("open");
+      DIAG.demo = hashParams.get("demo");
+      bootEl.hidden = true;
+      fatalEl.hidden = true;
+      setMascotState("idle");
+      setMode("COMPACT");
+      notifySize();
+      if (new URLSearchParams(location.search).has("dev")) console.debug("[safi]", DIAG);
+      if (hashParams.get("dev") === "1" && devAllowed()) {
+        $("devmode").checked = true;
+        devEl.classList.remove("hidden");
+        dumpDev();
+      }
+      if (hashParams.get("open") === "1") expand();
+      /* Visual-acceptance driver (§11): compact trust states without any
+         click — the SAME renderTrust path the real flow uses. */
+      if (hashParams.get("compactState")) {
+        renderTrust(String(hashParams.get("compactState")));
+      }
+      if (hashParams.get("demo") === "verify-wrong" || hashParams.get("demo") === "verify-right" || hashParams.get("demo") === "verify-uncertain") {
+        expand();
+        setMode_("verify");
+        $("paste-answer").value =
+          hashParams.get("demo") === "verify-wrong"
+            ? "Quanto fa 237 × 14? 237 × 14 = 3218"
+            : hashParams.get("demo") === "verify-uncertain"
+              ? "Il blorbo quarnetico vale 8123 flurb."
+              : "Quanto fa 237 × 14? 237 × 14 = 3318";
+        $("verify").click();
+      }
+      const pipeline = hashParams.get("state");
+      const KNOWN_PIPELINE = ["UNDERSTANDING", "TRANSLATING", "WAITING_AI", "HUMANIZING", "VERIFYING", "CORRECTING"];
+      if (KNOWN_PIPELINE.includes(String(pipeline).toUpperCase())) {
+        expand();
+        setState(String(pipeline).toUpperCase());
+      }
+      /* ACCEPTANCE DRIVER (brief §7) — runs INSIDE the installed app,
+         so every measurement is the REAL native window: N cycles
+         COMPACT → click → EXPANDED FULL → Escape → COMPACT.
+         Per cycle it checks: the first click is enough, the expanded
+         window is the canonical 396×442, the compact window is the
+         canonical 88×88, the panel is not clipped and no ghost panel
+         survives. The counters are relayed to the bridge, which prints
+         them on stdout for the release report. */
+      const selfTestN = Number(hashParams.get("selftest") ?? "0");
+      if (Number.isFinite(selfTestN) && selfTestN > 0) {
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        const waitMode = async (mode, ms) => {
+          const dl = Date.now() + ms;
+          while (Date.now() < dl && UI.mode !== mode) await wait(20);
+          return UI.mode === mode;
+        };
+        (async () => {
+          const out = { total: Math.min(30, selfTestN), fullOpen: 0, clipped: 0, secondClick: 0, ghostPanel: 0, wrongCompactSize: 0, wrongExpandedSize: 0, nativeResizes: false };
+          const startSize = [window.innerWidth, window.innerHeight];
+          if (UI.mode === "EXPANDED") { collapse(); await waitMode("COMPACT", 4000); }
+          for (let i = 0; i < out.total; i += 1) {
+            collapsedEl.click();
+            if (!await waitMode("EXPANDED", 4000)) out.secondClick += 1;
+            const w = SURFACE_SIZES.expandedWindow;
+            if (Math.abs(window.innerWidth - w.w) > 1 || Math.abs(window.innerHeight - w.h) > 1) {
+              out.wrongExpandedSize += 1;
+              out.nativeResizes = true;
+            }
+            if (Math.abs(window.innerWidth - startSize[0]) > 10) out.nativeResizes = true;
+            await wait(60);
+            if (widgetEl.scrollWidth > widgetEl.clientWidth + 2 || widgetEl.scrollHeight > widgetEl.clientHeight + 4) out.clipped += 1;
+            else out.fullOpen += 1;
+            collapse();
+            if (!await waitMode("COMPACT", 5000)) out.clipped += 1;
+            await wait(60);
+            if (!widgetEl.hidden) out.ghostPanel += 1;
+            if (!compactSizeConfirmed()) out.wrongCompactSize += 1;
+          }
+          DIAG.selftest = out;
+          await api("/api/host/selftest", out).catch(() => {});
+        })();
+      }
+      /* Test hook: compact → expand → collapse → expand → collapse,
+         with real surface notifications at every step (the native shell
+         resizes the window for real). */
+      if (hashParams.get("autocycle") === "1") {
+        const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        (async () => {
+          await wait(800);  expand();   await wait(2000);
+          collapse();                   await wait(2000);
+          expand();                     await wait(2000);
+          collapse();                   await wait(600);
+          DIAG.autocycleDone = true;
+        })();
+      }
+    }
+  </script>
+</body>
+</html>

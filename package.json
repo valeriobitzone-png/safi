@@ -1,0 +1,47 @@
+{
+  "name": "safi",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "description": "SAFI — a provider-neutral companion that translates natural human intent into AI-ready requests, then verifies, evaluates and humanizes AI responses.",
+  "type": "module",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check": "npm test",
+    "lint:ui-colors": "node tools/lint-ui-colors.mjs",
+    "test": "npm run lint:ui-colors && vitest run",
+    "test:android:device": "node tools/android-device-cdp-test.mjs",
+    "conformance": "node tests/run-conformance.mjs",
+    "demo": "npm run build && node packages/demo-web/server.js",
+    "demo:check": "node packages/demo-web/verify-demos.mjs",
+    "smoke": "npm run build && node dist/examples/basic-flow.js",
+    "smoke:wire": "node apps/desktop/smoke-wire.mjs",
+    "test:visual": "vitest run tests/visual.test.ts",
+    "visual:report": "node tools/visual-report.mjs",
+    "visual:promote": "node tools/promote-visual-baseline.mjs",
+    "smoke:live": "node apps/desktop/smoke-live.mjs",
+    "app": "npm run build && node apps/desktop/bridge.js",
+    "companion:extension:build": "npm run build && npm run mascot:companion && node tools/build-companion-extension.mjs",
+    "app:stage": "npm run build && node tools/stage-desktop-runtime.mjs",
+    "app:build:macos": "npm run app:icon && npm run app:stage && cd apps/desktop && cargo tauri build --bundles app",
+    "app:build:windows": "npm run app:icon && npm run app:stage && cd apps/desktop && cargo tauri build --bundles msi",
+    "app:icon": "node tools/gen-icon.mjs",
+    "mascot:assets": "node tools/gen-mascot-assets.mjs",
+    "release:collect": "node tools/collect-release.mjs",
+    "validate": "node tools/validate-schemas.mjs",
+    "mascot:companion": "node tools/gen-companion-mascot-assets.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  }
+}

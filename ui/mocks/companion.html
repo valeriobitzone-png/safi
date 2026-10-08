@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Safi — COMPANION overlay</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --safi-text-primary: #0F172A;
+      --safi-text-secondary: #334155;
+      --safi-blue: #2563EB;
+      --safi-blue-dark: #1E3A8A;
+      --safi-blue-soft: #60A5FA;
+      --safi-surface: #F8FAFC;
+      --safi-border: #CBD5E1;
+      --safi-trust-verified: #2e7d32;
+      --safi-trust-uncertain: #b45309;
+      --safi-trust-failed: #c62828;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--safi-surface);
+      color: var(--safi-text-primary);
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+    }
+    .external {
+      background: #ffffff;
+      border: 1px solid var(--safi-border);
+      border-radius: 18px;
+      max-width: 560px;
+      width: min(92vw, 560px);
+      padding: 1.2rem 1.3rem;
+      position: relative;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--safi-text-secondary);
+      border: 1px solid var(--safi-border);
+      border-radius: 999px;
+      padding: 0.15rem 0.6rem;
+      margin-bottom: 0.8rem;
+    }
+    .answer { font-size: 0.98rem; line-height: 1.6; margin: 0; padding-right: 3rem; }
+    .overlay {
+      position: absolute;
+      top: 2.6rem;
+      right: 0.9rem;
+    }
+    .close {
+      position: absolute;
+      top: -0.5rem;
+      right: -0.5rem;
+      all: unset;
+      cursor: pointer;
+      width: 24px;
+      height: 24px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 1px solid var(--safi-border);
+      font-size: 0.75rem;
+      color: var(--safi-text-secondary);
+    }
+    .close:focus-visible { outline: 2px solid var(--safi-blue); outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <main class="external" aria-label="Risposta di un AI esterna con overlay Safi">
+    <span class="badge">AI esterna</span>
+    <p class="answer">
+      La fotosintesi converte luce, acqua e anidride carbonica in glucosio
+      e ossigeno grazie alla clorofilla presente nelle foglie.
+    </p>
+    <div class="overlay" id="overlay">
+      <button class="close" id="close" aria-label="Nascondi overlay Safi">✕</button>
+      <safi-stamp id="stamp" context="COMPANION"></safi-stamp>
+    </div>
+  </main>
+
+  <script type="module">
+    import "./safi-stamp-mount.js";
+
+    document.getElementById("close").addEventListener("click", () => {
+      document.getElementById("overlay").hidden = true;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safi.dev/schemas/v0.1/candidate-response.json",
+  "title": "CandidateResponse",
+  "type": "object",
+  "required": ["text", "provider", "attempt"],
+  "additionalProperties": false,
+  "properties": {
+    "text": { "type": "string" },
+    "provider": { "type": "string" },
+    "attempt": { "type": "integer", "minimum": 1 },
+    "raw": true
+  }
+}

@@ -1,0 +1,1 @@
+d7156070b3364349bc6c2518eed202dc020f6fc7b308d3a333e764f9168affc5  release/macos/Safi.dmg

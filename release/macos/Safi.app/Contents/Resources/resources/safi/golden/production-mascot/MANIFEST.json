@@ -1,0 +1,96 @@
+{
+  "version": "1.0",
+  "tiers": {
+    "hero": {
+      "safi-hero-failed.png": {
+        "sha256": "52fa547560d262ccb81539fed1404bd7043292d00a14e052f8a1a20109237a52",
+        "bytes": 128246
+      },
+      "safi-hero-idle.png": {
+        "sha256": "05bc8f49f4124e77f2881d9833749647bfea6dfea7bd58197381ce842deea8db",
+        "bytes": 106782
+      },
+      "safi-hero-translating.png": {
+        "sha256": "ea8d9d2e19d84e6a25f0a721e2a3ba53ca0d8edbfe5a28ebc27431fb47a1d08b",
+        "bytes": 124186
+      },
+      "safi-hero-uncertain.png": {
+        "sha256": "3cb4a32036c7a6b8e468256f19f59d59a74036e4aca0ad08ec0c004a0d61271b",
+        "bytes": 131651
+      },
+      "safi-hero-understanding.png": {
+        "sha256": "d9d6e1a3e4dab6d08d5cc751891e60b8456363393deabdbef4649efaa33f6653",
+        "bytes": 118820
+      },
+      "safi-hero-verified.png": {
+        "sha256": "3e5400821e709ccb640c62c22edd2adcebf66b46e94590849518eea8e7caa6dd",
+        "bytes": 131102
+      },
+      "safi-hero-verifying.png": {
+        "sha256": "ed57ba4ee20e90337a4b7ed81dce41a47e279a3814bff6849d7748968556e6d9",
+        "bytes": 141599
+      }
+    },
+    "ui": {
+      "safi-ui-failed.png": {
+        "sha256": "c72a108272137ec76508fbe42d94bc31bee27d129c5f4cd22730010768714bc3",
+        "bytes": 17747
+      },
+      "safi-ui-idle.png": {
+        "sha256": "d7c0721f13ba4f29c8fe800d04d5382b3f5674c34af62be8e0c8a6792b47189d",
+        "bytes": 14319
+      },
+      "safi-ui-translating.png": {
+        "sha256": "ce5364e4e4854fe1e0c2f017a88d3260e4e460928a07b879936c0b434f477643",
+        "bytes": 16998
+      },
+      "safi-ui-uncertain.png": {
+        "sha256": "adea07357d17e4d0e90183fff9e052d06d0477f2fb407910078c4bde677b8940",
+        "bytes": 18729
+      },
+      "safi-ui-understanding.png": {
+        "sha256": "396ed6e43b7fdaa2b8c796ebf9eb9fd08bd3c64c87146a56f0464d71d818c474",
+        "bytes": 15395
+      },
+      "safi-ui-verified.png": {
+        "sha256": "a9f98c8ff013d2562f0b9055ab150277c7c5a3a5913949fa25eb9fc3310aee50",
+        "bytes": 17776
+      },
+      "safi-ui-verifying.png": {
+        "sha256": "ce27918c20658ba9787209db32edd86a19ba7a9bea709bc996db3617d18a6d71",
+        "bytes": 15985
+      }
+    },
+    "micro": {
+      "safi-micro-failed.png": {
+        "sha256": "39ee1343fb4f72344b3142d4c148179257a66b6431bbe7228e9d682e5c92e6c1",
+        "bytes": 6504
+      },
+      "safi-micro-idle.png": {
+        "sha256": "2bf9061f5e115e79cc4e064e990b350273dc38f60e2609cd32ee8bb7ad41c02e",
+        "bytes": 5313
+      },
+      "safi-micro-translating.png": {
+        "sha256": "73bfecd55a4c0c6f41f97b262d86d86a2d71eceaf9fbe65b3713b0ed1b3e49b7",
+        "bytes": 6222
+      },
+      "safi-micro-uncertain.png": {
+        "sha256": "9ae6070c2b46fd7ad122d4b958ac9b05044343b9132c7609ed10815c84437d4a",
+        "bytes": 6748
+      },
+      "safi-micro-understanding.png": {
+        "sha256": "1450f2a8636e3c82d8dce97f813c1d85977f72ee4c877eeccc36bca9c85fb737",
+        "bytes": 5695
+      },
+      "safi-micro-verified.png": {
+        "sha256": "7dc6924aa557674ff43ebb33feeebda95e9d165cad096cc7a0470bd610d22ab4",
+        "bytes": 6356
+      },
+      "safi-micro-verifying.png": {
+        "sha256": "df788833c5e1fffdae86ca408b840d82d28988c7665bbb873df73c6fdcbd25f1",
+        "bytes": 5826
+      }
+    }
+  },
+  "source_reference": "golden/safi-production-asset-sheet-reference.png"
+}

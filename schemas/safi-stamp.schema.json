@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safi.dev/schemas/v0.1/safi-stamp.json",
+  "title": "SafiStamp",
+  "type": "object",
+  "required": [
+    "schema",
+    "trustStatus",
+    "createdAt",
+    "policyId",
+    "responseSha256",
+    "requiredChecks",
+    "attempt",
+    "maxAttempts",
+    "provider"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "safi-stamp/v0.1" },
+    "trustStatus": { "enum": ["VERIFIED", "UNCERTAIN", "FAILED"] },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "policyId": { "type": "string" },
+    "responseSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "requiredChecks": { "type": "array", "items": { "type": "string" } },
+    "attempt": { "type": "integer", "minimum": 1 },
+    "maxAttempts": { "type": "integer", "minimum": 1 },
+    "provider": { "type": "string" }
+  }
+}

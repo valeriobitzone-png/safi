@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://safi.dev/schemas/v0.1/intent-frame.json",
+  "title": "IntentFrame",
+  "type": "object",
+  "required": ["goal", "task", "needsClarification"],
+  "additionalProperties": false,
+  "properties": {
+    "goal": { "type": "string" },
+    "task": { "type": "string" },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "clarificationQuestions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "needsClarification": { "type": "boolean" }
+  }
+}

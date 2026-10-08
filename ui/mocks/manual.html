@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Safi — MANUAL</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --safi-text-primary: #0F172A;
+      --safi-text-secondary: #334155;
+      --safi-blue: #2563EB;
+      --safi-blue-dark: #1E3A8A;
+      --safi-blue-soft: #60A5FA;
+      --safi-surface: #F8FAFC;
+      --safi-border: #CBD5E1;
+      --safi-trust-verified: #2e7d32;
+      --safi-trust-uncertain: #b45309;
+      --safi-trust-failed: #c62828;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--safi-surface);
+      color: var(--safi-text-primary);
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+    }
+    .panel {
+      background: #ffffff;
+      border: 1px solid var(--safi-border);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.07);
+      max-width: 560px;
+      width: min(92vw, 560px);
+      padding: 1.4rem 1.5rem 1.8rem;
+    }
+    h1 { font-size: 1rem; font-weight: 600; margin: 0 0 1.2rem; color: var(--safi-blue-dark); }
+    label { display: block; font-weight: 600; font-size: 0.9rem; margin: 0 0 0.35rem; }
+    .hint { font-weight: 400; color: var(--safi-text-secondary); font-size: 0.8rem; margin: 0 0 0.4rem; }
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 84px;
+      border: 1px solid var(--safi-border);
+      border-radius: 12px;
+      padding: 0.6rem 0.7rem;
+      font: inherit;
+      resize: vertical;
+      background: #fbfdfb;
+    }
+    textarea:focus-visible { outline: 2px solid var(--safi-blue); outline-offset: 1px; }
+    .section { margin-top: 1.2rem; }
+    .actions { display: flex; justify-content: flex-end; margin-top: 0.9rem; }
+    button.primary {
+      all: unset;
+      cursor: pointer;
+      background: var(--safi-blue);
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border-radius: 999px;
+      padding: 0.55rem 1.1rem;
+    }
+    button.primary:focus-visible { outline: 2px solid var(--safi-blue); outline-offset: 2px; }
+    .result { margin-top: 1rem; display: flex; justify-content: flex-end; min-height: 34px; align-items: center; }
+    .note { font-size: 0.75rem; color: var(--safi-text-secondary); margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <main class="panel" aria-label="Modalità manuale Safi">
+    <h1>Parla normalmente. Safi fa il resto.</h1>
+
+    <div class="section">
+      <label for="speak">Parla normalmente</label>
+      <p class="hint">Scrivi come parleresti a una persona. Nessun prompt tecnico richiesto.</p>
+      <textarea id="speak" aria-describedby="speak-hint"></textarea>
+    </div>
+
+    <div class="section">
+      <label for="verify">Verifica questa risposta</label>
+      <p class="hint">Incolla qui una risposta ricevuta da qualsiasi AI per farla certificare.</p>
+      <textarea id="verify" aria-describedby="verify-hint"></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="run">Verifica con Safi</button>
+    </div>
+
+    <div class="result">
+      <safi-stamp id="stamp" context="MANUAL" hidden></safi-stamp>
+    </div>
+
+    <p class="note">
+      Modalità manuale: nessuna integrazione, nessuna intercettazione. I
+      due campi sono input normali; il risultato è la proiezione del
+      certificato, mostrata al livello minimo (●) con espansione a tap.
+    </p>
+  </main>
+
+  <script type="module">
+    import "./safi-stamp-mount.js";
+
+    document.getElementById("run").addEventListener("click", () => {
+      const stamp = document.getElementById("stamp");
+      stamp.hidden = false;
+      // Demo: mostra il certificato d'esempio. In produzione arriva dal
+      // SafiOutcome restituito dal transport manuale.
+      stamp.source = stamp.source ?? undefined;
+    });
+  </script>
+</body>
+</html>

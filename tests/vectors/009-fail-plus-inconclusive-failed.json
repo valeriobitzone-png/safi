@@ -1,0 +1,16 @@
+{
+  "description": "FAIL plus INCONCLUSIVE on the same required check: FAILED.",
+  "humanMessage": "Check the code.",
+  "frozenTime": "2026-09-17T00:00:00.000Z",
+  "providerResponses": [{ "attempt": 1, "text": "The code looks fine." }],
+  "verifierResults": [
+    { "checkId": "code", "outcome": "FAIL", "verifierId": "verifier-a", "detail": "bug found" },
+    { "checkId": "code", "outcome": "INCONCLUSIVE", "verifierId": "verifier-b", "detail": "could not compile" }
+  ],
+  "policy": {
+    "id": "vector-009",
+    "scope": { "requiredChecks": ["code"] },
+    "maxCorrectionAttempts": 0
+  },
+  "expectedOutcome": { "kind": "result", "trustStatus": "FAILED" }
+}

@@ -1,0 +1,52 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+coverage/
+.vitest-cache/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local browser profiles and authenticated sessions
+.safari*
+.safi-live-profile/
+
+# Android build output
+artifacts/android-device/
+apps/android/app/build/
+apps/android/.gradle/
+android/.idea/
+
+# Xcode build output
+*.xcuserdata
+DerivedData/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# Temporary screenshots and visual evidence that should stay local
+docs/visual-evidence/
+visual-evidence/
+tmp-visual/
+screenshots-local/
+
+# Tauri 2 desktop shell build artifacts
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/gen/
+apps/desktop/src-tauri/resources/
+
+# Release artifacts (checksums and reports are generated)
+release/
+
+# OS junk
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.swp
+*.swo
+*~

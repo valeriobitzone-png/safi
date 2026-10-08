@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Safi</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --safi-text-primary: #0F172A;
+      --safi-text-secondary: #334155;
+      --safi-blue: #2563EB;
+      --safi-blue-dark: #1E3A8A;
+      --safi-blue-soft: #60A5FA;
+      --safi-surface: #F8FAFC;
+      --safi-border: #CBD5E1;
+      /* Canonical projection trust colors: never reuse them as brand accents. */
+      --safi-trust-verified: #2e7d32;
+      --safi-trust-uncertain: #b45309;
+      --safi-trust-failed: #c62828;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--safi-surface);
+      color: var(--safi-text-primary);
+      padding: 1.2rem;
+      box-sizing: border-box;
+    }
+    h1 { font-size: 1.1rem; color: var(--safi-blue-dark); margin: 0 0 0.2rem; }
+    p.sub { font-size: 0.85rem; color: var(--safi-text-secondary); margin: 0 0 1rem; }
+    label { display: block; font-weight: 600; font-size: 0.85rem; color: var(--safi-text-primary); margin: 0.8rem 0 0.3rem; }
+    textarea {
+      width: 100%; box-sizing: border-box; min-height: 72px;
+      border: 1px solid var(--safi-border); border-radius: 12px; padding: 0.6rem;
+      font: inherit; resize: vertical; background: #fff; color: var(--safi-text-primary);
+    }
+    textarea:focus-visible { outline: 2px solid var(--safi-blue); outline-offset: 1px; }
+    button.primary {
+      margin-top: 0.5rem; border: none; border-radius: 999px;
+      background: var(--safi-blue); color: #fff; font: inherit; font-weight: 600;
+      padding: 0.5rem 1.2rem; cursor: pointer;
+      box-shadow: 0 2px 5px rgba(37, 99, 235, 0.24);
+    }
+    button.primary:focus-visible { outline: 2px solid var(--safi-blue); outline-offset: 2px; }
+    #answer {
+      margin-top: 0.9rem; padding: 0.7rem; background: #fff;
+      border: 1px solid var(--safi-border); border-radius: 12px; font-size: 0.9rem;
+      color: var(--safi-text-primary);
+      white-space: pre-wrap;
+    }
+    .stamp-row { margin-top: 0.6rem; }
+    #microstate { min-height: 1.2rem; font-size: 0.85rem; color: var(--safi-text-secondary); }
+  </style>
+</head>
+<body>
+  <h1>Safi</h1>
+  <p class="sub">Parla normalmente. Safi comprende, verifica e ti mostra lo stamp.</p>
+
+  <label for="speak">Parla normalmente…</label>
+  <textarea id="speak" aria-label="Parla normalmente"></textarea>
+  <button id="send" class="primary">Invia</button>
+
+  <label for="paste-answer">Verifica questa risposta</label>
+  <textarea id="paste-answer" aria-label="Verifica questa risposta"></textarea>
+  <button id="verify" class="primary">Verifica</button>
+
+  <p id="microstate" role="status" aria-live="polite"></p>
+  <div id="answer" aria-live="polite" hidden></div>
+  <div class="stamp-row"><safi-stamp id="stamp" context="EMBEDDED" hidden></safi-stamp></div>
+
+  <script type="module">
+    import "./brain.js";
+    import "./ui/safi-stamp.js";
+
+    const $ = (id) => document.getElementById(id);
+    const micro = $("microstate");
+    const stampEl = $("stamp");
+    const answerEl = $("answer");
+
+    const share = new URLSearchParams(location.hash.replace(/^#/, "")).get("share");
+    if (share) {
+      $("paste-answer").value = share;
+      history.replaceState(null, "", location.pathname + location.search);
+      $("verify").click();
+    }
+
+    $("send").addEventListener("click", () => {
+      const message = $("speak").value.trim();
+      if (!message) { micro.textContent = "Scrivi prima qualcosa da chiedere."; return; }
+      micro.textContent = "Safi sta capendo…";
+      globalThis.SafiBrain.ask(message).then(({ prompt }) => {
+        micro.textContent = "";
+        answerEl.hidden = false;
+        answerEl.setAttribute("aria-label", "Prompt pronto");
+        answerEl.textContent = `✦ Prompt pronto\nTradotto da Safi\n\n${prompt.text}`;
+        stampEl.source = null;
+        stampEl.hidden = true;
+      });
+    });
+
+    $("verify").addEventListener("click", () => {
+      const answer = $("paste-answer").value.trim();
+      if (!answer) { micro.textContent = "Incolla prima la risposta da verificare."; return; }
+      micro.textContent = "Safi sta verificando…";
+      globalThis.SafiBrain.verify(answer).then((outcome) => {
+        micro.textContent = "";
+        if (!outcome.certificate) {
+          answerEl.hidden = true;
+          answerEl.removeAttribute("aria-label");
+          stampEl.source = null;
+          stampEl.hidden = true;
+          micro.textContent = outcome.message ?? "Non verificabile.";
+          return;
+        }
+        answerEl.hidden = false;
+        answerEl.setAttribute("aria-label", outcome.certificate.trustStatus);
+        answerEl.textContent = outcome.answer ?? answer;
+        stampEl.source = outcome.certificate;
+        stampEl.hidden = false;
+      });
+    });
+  </script>
+</body>
+</html>
