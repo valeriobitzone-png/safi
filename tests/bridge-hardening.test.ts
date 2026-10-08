@@ -1,13 +1,3 @@
-/**
- * Phase 6 — loopback bridge adversarial tests.
- *
- * A "malicious website" (any page in a browser) tries everything it can
- * from JavaScript alone: guess the port, call without a token, forge an
- * Origin, rebind DNS via the Host header, abuse GET, sneak past the
- * content-type check, oversize the body, and read CORS preflight leaks.
- * The bridge must refuse all of it. Legitimate calls with the session
- * token still work, and the token never reaches disk or logs.
- */
 import { describe, expect, it } from "vitest";
 import { spawn } from "node:child_process";
 import { readFileSync, readdirSync, rmSync, existsSync } from "node:fs";
@@ -15,14 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const ROOT = join(import.meta.dirname, "..");
-
-// Guard: the desktop bridge runtime is a dev-tree artifact, not part of the
-// public release tree. On a clean public checkout the suite skips cleanly.
 const bridgeJsPath = join(ROOT, "apps", "desktop", "bridge.js");
-if (!existsSync(bridgeJsPath)) {
-  console.log(`[bridge-hardening] skipped: ${bridgeJsPath} not present — run tools/stage-desktop-runtime.mjs first`);
-  return;
-}
 
 interface BridgeInfo {
   proc: ReturnType<typeof spawn>;
@@ -43,10 +26,8 @@ async function startBridge(): Promise<BridgeInfo> {
   proc.stderr!.on("data", (chunk) => { stderr += String(chunk); });
   const deadline = Date.now() + 10_000;
   while (Date.now() < deadline) {
-    // Primary handshake: the machine-readable line on stdout, exactly once.
     const ready = /SAFI_BRIDGE_READY port=(\d+) token=(\S+)/.exec(stdout);
     if (ready) return { proc, port: Number(ready[1]), token: ready[2], stderr, stdout };
-    // Fallback discovery (port/pid only — never the token) via tmpdir files.
     for (const name of readdirSync(tmpdir())) {
       if (!name.startsWith("safi-bridge-") || !name.endsWith(".json")) continue;
       const statusPath = join(tmpdir(), name);
@@ -104,17 +85,35 @@ async function withBridge(fn: (b: BridgeInfo) => Promise<void>): Promise<void> {
 const LEGIT_HEADERS = (port: number, token: string) => ({
   "content-type": "application/json",
   "x-safi-session": token,
-  // The embedded widget page is served from the loopback origin itself.
   "origin": `http://127.0.0.1:${port}`,
 });
 
 describe("loopback bridge hardening (malicious-site simulation)", () => {
+  if (!existsSync(bridgeJsPath)) {
+    it.todo("binds to a random port and a cryptographically random session token");
+    it.todo("refuses requests without a session token");
+    it.todo("refuses wrong or brute-forced tokens");
+    it.todo("refuses a forged cross-site Origin (CSRF from malicious page)");
+    it.todo("refuses DNS-rebinding via attacker-controlled Host header");
+    it.todo("refuses GET on sensitive endpoints");
+    it.todo("refuses unexpected content-types");
+    it.todo("enforces input size limits");
+    it.todo("does not answer CORS preflights with a permissive policy");
+    it.todo("keeps Ask completion separate from verification trust");
+    it.todo("rejects empty Ask input without changing widget state");
+    it.todo("rejects null JSON bodies without changing state");
+    it.todo("rejects non-string Ask and Verify payloads without changing state");
+    it.todo("keeps concurrent Ask responses bound to their own input");
+    it.todo("still serves legitimate loopback traffic end to end");
+    it.todo("never writes the session token to disk or logs");
+    return;
+  }
+
   it("binds to a random port and a cryptographically random session token", async () => {
     const first = await startBridge();
     try {
       expect(first.port).toBeGreaterThanOrEqual(49152);
       expect(first.port).toBeLessThanOrEqual(65535);
-      // 32 random bytes, base64url-encoded: 43 chars, ~256 bits of entropy.
       expect(first.token).toMatch(/^[A-Za-z0-9_-]{43}$/);
       const second = await startBridge();
       stopBridge(second);
@@ -305,7 +304,7 @@ describe("loopback bridge hardening (malicious-site simulation)", () => {
       const data = await res.json();
       expect(data.certificate.trustStatus).toBe("VERIFIED");
       const calc = data.certificate.checks.find((c: { checkId: string }) => c.checkId === "calculation");
-      expect(calc?.outcome).toBe("PASS"); // the independent deterministic computation agreed
+      expect(calc?.outcome).toBe("PASS");
     });
   });
 
@@ -317,11 +316,8 @@ describe("loopback bridge hardening (malicious-site simulation)", () => {
         headers: { ...LEGIT_HEADERS(b.port, b.token), host: `127.0.0.1:${b.port}` },
         body: JSON.stringify({ answer: "2 + 2 = 4" }),
       });
-      // The human-readable log must never contain the token.
       expect(b.stderr).not.toContain(b.token);
-      // The stdout handshake mentions it exactly once, by contract.
       expect(b.stdout.split(b.token).length - 1).toBe(1);
-      // Scan every bridge runtime artifact for the token.
       const dir = tmpdir();
       for (const name of readdirSync(dir)) {
         if (!name.startsWith("safi-bridge-")) continue;

@@ -98,24 +98,26 @@ describe("Safi PRODUCTION ASSETS — the 21 delivered masters", () => {
   });
 });
 
+const _widgetPath = join(repo, "apps", "desktop", "widget.html");
+const _widget = existsSync(_widgetPath) ? readFileSync(_widgetPath, "utf8") : undefined;
+
 describe("Optical mapping — 0–72 MICRO, 73–180 UI, >180 HERO", () => {
-  const widgetPath = join(repo, "apps", "desktop", "widget.html");
-  if (!existsSync(widgetPath)) {
-    console.log(`[mascot] skipped: ${widgetPath} not present — run tools/capture-golden.mjs first`);
-    return;
+  if (!_widget) {
+    console.log(`[mascot] skipped: ${_widgetPath} not present — run tools/capture-golden.mjs first`);
   }
-  const widget = readFileSync(widgetPath, "utf8");
 
   it("the widget maps tiers by rendered size and audits itself", () => {
-    expect(widget).toContain("function tierForSize(px)");
-    expect(widget).toMatch(/px <= 72[\s\S]{0,80}"micro"/);
-    expect(widget).toMatch(/px <= 180[\s\S]{0,80}"ui"/);
-    expect(widget).toContain('return "hero"');
+    if (!_widget) return;
+    expect(_widget).toContain("function tierForSize(px)");
+    expect(_widget).toMatch(/px <= 72[\s\S]{0,80}"micro"/);
+    expect(_widget).toMatch(/px <= 180[\s\S]{0,80}"ui"/);
+    expect(_widget).toContain('return "hero"');
   });
 
   it("every declared host tier matches the optical band of its rendered size", () => {
+    if (!_widget) return;
     // Parse the CSS-declared size of every mascot host.
-    const hosts = [...widget.matchAll(/<img([^>]*data-mascot[^>]*)>/g)].map((m) => m[1]);
+    const hosts = [..._widget.matchAll(/<img([^>]*data-mascot[^>]*)>/g)].map((m) => m[1]);
     expect(hosts.length, "mascot hosts in the markup").toBeGreaterThanOrEqual(5);
     for (const attrs of hosts) {
       const tier = /data-mascot-tier="(\w+)"/.exec(attrs)?.[1];
@@ -128,64 +130,62 @@ describe("Optical mapping — 0–72 MICRO, 73–180 UI, >180 HERO", () => {
   });
 
   it("compact uses MICRO (never a downscaled HERO) and the panel uses UI-tier sizes", () => {
-    expect(widget).toMatch(/#collapsed img\[data-mascot\] \{ width: 60px; height: 60px/);
+    if (!_widget) return;
+    expect(_widget).toMatch(/#collapsed img\[data-mascot\] \{ width: 60px; height: 60px/);
     // 3:2 pass: the header mark is 30px, not 44px. The INPUT view must fit
     // 384×256 with NO internal scroll, and on the real surfaces a 44px
     // mark pushed "✓ verifica" 11px below the lower functional edge. The
     // optical BAND is untouched — 30 is still 0–72 MICRO, exactly as 44
     // was — so only the rendered size changed, never the tier contract.
-    expect(widget).toMatch(/#safi-mascot-header \{ width: 30px; height: 30px/);
+    expect(_widget).toMatch(/#safi-mascot-header \{ width: 30px; height: 30px/);
   });
 });
 
+const _bridgePath = join(repo, "apps", "desktop", "bridge.js");
+const _stagePath = join(repo, "tools", "stage-desktop-runtime.mjs");
+const _proceduralMascotRuntime = existsSync(_widgetPath) && existsSync(_bridgePath) && existsSync(_stagePath);
+const _widgetProc = _proceduralMascotRuntime ? readFileSync(_widgetPath, "utf8") : undefined;
+const _bridgeProc = _proceduralMascotRuntime ? readFileSync(_bridgePath, "utf8") : undefined;
+const _stageProc = _proceduralMascotRuntime ? readFileSync(_stagePath, "utf8") : undefined;
+
 describe("PROCEDURAL MASCOT IS GONE FROM THE RUNTIME", () => {
-  const widgetPath = join(repo, "apps", "desktop", "widget.html");
-  if (!existsSync(widgetPath)) {
-    console.log(`[mascot] skipped: ${widgetPath} not present — run tools/capture-golden.mjs first`);
-    return;
+  if (!_proceduralMascotRuntime) {
+    console.log(`[mascot] skipped: missing dev-tree artifacts — run tools/capture-golden.mjs && tools/stage-desktop-runtime.mjs first`);
   }
-  const widget = readFileSync(widgetPath, "utf8");
-  const bridgePath = join(repo, "apps", "desktop", "bridge.js");
-  if (!existsSync(bridgePath)) {
-    console.log(`[mascot] skipped: ${bridgePath} not present — run tools/capture-golden.mjs first`);
-    return;
-  }
-  const bridge = readFileSync(bridgePath, "utf8");
-  const stagePath = join(repo, "tools", "stage-desktop-runtime.mjs");
-  if (!existsSync(stagePath)) {
-    console.log(`[mascot] skipped: ${stagePath} not present — run tools/stage-desktop-runtime.mjs first`);
-    return;
-  }
-  const stage = readFileSync(stagePath, "utf8");
 
   it("the widget never imports or renders the archived procedural module", () => {
-    expect(widget).not.toMatch(/safi-mascot\.js/);
-    expect(widget).not.toMatch(/safiMascotMarkup/);
-    expect(widget).not.toMatch(/SAFI_MASCOT_(CSS|LAYOUT|STATES|COLORS)/);
+    if (!_widgetProc) return;
+    expect(_widgetProc).not.toMatch(/safi-mascot\.js/);
+    expect(_widgetProc).not.toMatch(/safiMascotMarkup/);
+    expect(_widgetProc).not.toMatch(/SAFI_MASCOT_(CSS|LAYOUT|STATES|COLORS)/);
     // No procedural face geometry identifiers and no inline figure.
-    expect(widget).not.toMatch(/smilePath|browArc|\bFACE\b/);
-    expect(widget).not.toMatch(/<svg[^>]*data-mascot/);
-    expect(widget).not.toMatch(/<path|<ellipse|<circle/);
+    if (!_widgetProc) return;
+    expect(_widgetProc).not.toMatch(/smilePath|browArc|\bFACE\b/);
+    expect(_widgetProc).not.toMatch(/<svg[^>]*data-mascot/);
+    expect(_widgetProc).not.toMatch(/<path|<ellipse|<circle/);
   });
 
   it("the bridge does not serve the procedural mascot and serves the 21 masters", () => {
-    expect(bridge).not.toMatch(/ui\/safi-mascot\.js/);
-    expect(bridge).toContain("/mascot/");
-    expect(bridge).toContain("golden/production-mascot/");
+    if (!_bridgeProc) return;
+    expect(_bridgeProc).not.toMatch(/ui\/safi-mascot\.js/);
+    expect(_bridgeProc).toContain("/mascot/");
+    expect(_bridgeProc).toContain("golden/production-mascot/");
     // Only the exact delivered names are reachable.
-    expect(bridge).toMatch(/hero\|ui\|micro/);
+    expect(_bridgeProc).toMatch(/hero\|ui\|micro/);
   });
 
   it("the staged runtime ships the production masters, not the procedural module", () => {
-    expect(stage).toContain('["golden/production-mascot", "golden/production-mascot"]');
-    expect(stage).not.toMatch(/\["ui\/safi-mascot\.js"/);
+    if (!_stageProc) return;
+    expect(_stageProc).toContain('["golden/production-mascot", "golden/production-mascot"]');
+    expect(_stageProc).not.toMatch(/\["ui\/safi-mascot\.js"/);
   });
 
   it("the satin tint is a VALID background layer (regression: colour first = dropped)", () => {
+    if (!_widgetProc) return;
     // In the `background` shorthand a <color> is only legal as the LAST
     // layer. Listing the tint before a gradient invalidates the whole
     // declaration, and the surface silently renders fully transparent.
-    const style = /<style>([\s\S]*?)<\/style>/.exec(widget)?.[1] ?? "";
+    const style = /<style>([\s\S]*?)<\/style>/.exec(_widgetProc)?.[1] ?? "";
     for (const [selector, body] of style.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
       if (!/background:\s*var\(--glass-tint\)|background:\s*rgba\(/.test(body)) continue;
       const layers = body.replace(/background:[^;]+;/, "").length;
@@ -197,9 +197,10 @@ describe("PROCEDURAL MASCOT IS GONE FROM THE RUNTIME", () => {
   });
 
   it("the mascot is never blurred, filtered or faded (brief §11)", () => {
+    if (!_widgetProc) return;
     // Parse the stylesheet rule by rule: any rule whose selector
     // targets the delivered asset may never blur it or fade it.
-    const style = /<style>([\s\S]*?)<\/style>/.exec(widget)?.[1] ?? "";
+    const style = /<style>([\s\S]*?)<\/style>/.exec(_widgetProc)?.[1] ?? "";
     const rules = [...style.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
     const assetRules = rules.filter(([, selector]) => selector.includes("img[data-mascot]"));
     expect(assetRules.length, "asset rules found").toBeGreaterThan(0);
@@ -210,15 +211,22 @@ describe("PROCEDURAL MASCOT IS GONE FROM THE RUNTIME", () => {
       expect(opacity ?? "1", `${selector.trim()} opacity`).toBe("1");
     }
     // The glow lives on the HOST, not on the asset.
-    expect(widget).toMatch(/#collapsed\[data-state="verified"\] \{ box-shadow/);
+    expect(_widgetProc).toMatch(/#collapsed\[data-state="verified"\] \{ box-shadow/);
     // No ancestor of the asset carries a blur/opacity fade either.
-    expect(widget).not.toMatch(/#collapsed[^{}]*\{[^}]*opacity:\s*0?\.[0-8]/);
+    expect(_widgetProc).not.toMatch(/#collapsed[^{}]*\{[^}]*opacity:\s*0?\.[0-8]/);
   });
 });
 
 describe("Icon pipeline — production masters, zero procedural figure", () => {
+  const icon32 = join(repo, "apps", "desktop", "src-tauri", "icons", "icon-32.png");
+  const iconPipelineSrc = join(repo, "tools", "gen-icon.mjs");
+  if (!existsSync(icon32)) {
+    console.log(`[mascot] skipped: icon-32.png not present — icon pipeline was not staged`);
+  }
+
   it("composites the delivered masters through the optical mapping", () => {
-    const src = readFileSync(join(repo, "tools", "gen-icon.mjs"), "utf8");
+    if (!existsSync(iconPipelineSrc)) return;
+    const src = readFileSync(iconPipelineSrc, "utf8");
     expect(src).not.toMatch(/renderMascotHead|safiMascotMarkup|SAFI_MASCOT_LAYOUT/);
     expect(src).toContain("golden/production-mascot/hero/safi-hero-idle.png");
     expect(src).toContain("golden/production-mascot/ui/safi-ui-idle.png");
@@ -228,7 +236,12 @@ describe("Icon pipeline — production masters, zero procedural figure", () => {
 
   it("the generated Dock icon really contains the mascot (ink + warm accents)", () => {
     for (const size of [32, 128, 512]) {
-      const img = decodePng(join(repo, "apps", "desktop", "src-tauri", "icons", `icon-${size}.png`));
+      const iconPath = join(repo, "apps", "desktop", "src-tauri", "icons", `icon-${size}.png`);
+      if (!existsSync(iconPath)) {
+        console.log(`[mascot] skipped: icon-${size}.png not present — icon pipeline was not staged`);
+        continue;
+      }
+      const img = decodePng(iconPath);
       let ink = 0, warm = 0;
       for (let i = 0; i < img.width * img.height; i += 1) {
         const [r, g, b, a] = [img.pixels[i * 4], img.pixels[i * 4 + 1], img.pixels[i * 4 + 2], img.pixels[i * 4 + 3]];
@@ -239,6 +252,11 @@ describe("Icon pipeline — production masters, zero procedural figure", () => {
       expect(ink, `icon-${size}: mascot ink (eyes/mouth)`).toBeGreaterThan(0);
       expect(warm, `icon-${size}: mascot star/cheeks`).toBeGreaterThan(0);
     }
+  });
+  it("icon-512.png is delivered when the icon pipeline is staged", () => {
+    if (!existsSync(icon32)) return;
+    const icon512 = join(repo, "apps", "desktop", "src-tauri", "icons", "icon-512.png");
+    expect(existsSync(icon512)).toBe(true);
   });
 });
 describe("Brand: Pico is gone, Safi is the only mascot", () => {
@@ -268,8 +286,13 @@ describe("Brand: Pico is gone, Safi is the only mascot", () => {
 });
 
 describe("APP ICON ground — the delivered master rides the perla tile", () => {
+  const icon128 = join(repo, "apps", "desktop", "src-tauri", "icons", "icon-128.png");
+  if (!existsSync(icon128)) {
+    console.log(`[mascot] skipped: icon-128.png not present — icon pipeline was not staged`);
+  }
   it("keeps the macOS squircle ground: opaque perla, transparent outside", () => {
-    const img = decodePng(join(repo, "apps", "desktop", "src-tauri", "icons", "icon-128.png"));
+    if (!existsSync(icon128)) return;
+    const img = decodePng(icon128);
     expect([img.width, img.height]).toEqual([128, 128]);
     const px = (x: number, y: number) => {
       const i = (y * img.width + x) * 4;

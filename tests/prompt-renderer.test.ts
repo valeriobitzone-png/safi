@@ -2,14 +2,9 @@ import { describe, expect, it } from "vitest";
 import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { deliverTranslatedPrompt, renderTranslatedPrompt } from "../packages/ask-prompt-renderer/index.js";
 
 const hostJsPath = join(dirname(fileURLToPath(import.meta.url)), "..", "apps", "desktop", "host.js");
-if (!existsSync(hostJsPath)) {
-  console.log(`[prompt-renderer] skipped: ${hostJsPath} not present — run tools/stage-desktop-runtime.mjs first`);
-  return;
-}
-import { createDesktopHost } from "../apps/desktop/host.js";
-import { deliverTranslatedPrompt, renderTranslatedPrompt } from "../packages/ask-prompt-renderer/index.js";
 
 const original = "come creo un app con una bella grafica?";
 const semantic = {
@@ -21,6 +16,16 @@ const semantic = {
 };
 
 describe("Ask prompt renderer", () => {
+  if (!existsSync(hostJsPath)) {
+    it.todo("projects the neutral translation into a structured AI-ready prompt");
+    it.todo("does not leak provider-specific vocabulary into the consumer prompt");
+    it.todo("retains explicit constraints and declared clarification questions");
+    it.todo("exposes the same delivery projection through the desktop host");
+    it.todo("does not reuse a previous prompt when Ask requests overlap");
+    it.todo("keeps Ask completion separate from factual verification");
+    return;
+  }
+
   it("projects the neutral translation into a structured AI-ready prompt", () => {
     const prompt = deliverTranslatedPrompt({ semantic });
     expect(prompt.kind).toBe("prompt-ready/v0.1");
@@ -58,6 +63,7 @@ describe("Ask prompt renderer", () => {
   });
 
   it("exposes the same delivery projection through the desktop host", async () => {
+    const { createDesktopHost } = await import("../apps/desktop/host.js");
     const host = createDesktopHost({ platform: "macos" });
     const loop = await host.runPipeline(original);
     expect(loop.delivery.outcome.kind).toBe("result");
@@ -69,6 +75,7 @@ describe("Ask prompt renderer", () => {
   });
 
   it("does not reuse a previous prompt when Ask requests overlap", async () => {
+    const { createDesktopHost } = await import("../apps/desktop/host.js");
     const host = createDesktopHost({ platform: "macos" });
     const [first, second] = await Promise.all([
       host.runAsk("prima richiesta"),
@@ -79,6 +86,7 @@ describe("Ask prompt renderer", () => {
   });
 
   it("keeps Ask completion separate from factual verification", async () => {
+    const { createDesktopHost } = await import("../apps/desktop/host.js");
     const host = createDesktopHost({ platform: "macos" });
     const ask = await host.runAsk(original);
     const snapshot = host.widgetSnapshot();
