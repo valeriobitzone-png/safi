@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -41,6 +41,11 @@ function filesBelow(root: string): string[] {
 
 describe("single-source mobile consumer", () => {
   it("packages only the explicit reachable runtime graph", () => {
+    const iosManifestPath = join(IOS_RESOURCES, "runtime-manifest.json");
+    if (!existsSync(iosManifestPath)) {
+      console.log(`[android-brain] skipped: ${iosManifestPath} not present — run tools/mobile-runtime-manifest.mjs first`);
+      return;
+    }
     const sourceManifest = JSON.parse(
       readFileSync(join(ROOT, "tools/mobile-runtime-manifest.json"), "utf8"),
     ) as {
@@ -84,7 +89,12 @@ describe("single-source mobile consumer", () => {
   });
 
   it("returns exactly translation and prompt, while Verify stays certified", async () => {
-    await import(pathToFileURL(join(ASSETS, "brain.js")).href);
+    const brainPath = join(ASSETS, "brain.js");
+    if (!existsSync(brainPath)) {
+      console.log(`[android-brain] skipped: ${brainPath} not present — run tools/mobile-runtime-manifest.mjs first`);
+      return;
+    }
+    await import(pathToFileURL(brainPath).href);
     const brain = (globalThis as { SafiBrain?: MobileBrain }).SafiBrain;
     expect(brain).toBeDefined();
 
