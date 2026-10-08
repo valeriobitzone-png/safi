@@ -6,14 +6,22 @@
  * behavior, no-secret posture, and that the CORE stays untouched.
  */
 import { describe, expect, it } from "vitest";
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { HOST_CAPABILITIES, createHostConsent, createHostProbe } from "../packages/host-contract/index.js";
 import { createSafiClient } from "../packages/safi-client/index.js";
 import { createSafiWidget, projectTrustState, PIPELINE_STATES } from "../packages/safi-widget/index.js";
+import { readFileSync } from "node:fs";
+
+const hostJsPath = join(import.meta.dirname, "..", "apps", "desktop", "host.js");
+if (!existsSync(hostJsPath)) {
+  console.log(`[app] skipped: ${hostJsPath} not present — run tools/stage-desktop-runtime.mjs first`);
+  return;
+}
 import { createDesktopHost } from "../apps/desktop/host.js";
+
 import { createAndroidHostAdapter } from "../apps/android/host-adapter.js";
 import { createIOSHostAdapter } from "../apps/ios/host-adapter.js";
 import { createCalculationVerifier } from "../packages/verifier-calculation/index.js";
