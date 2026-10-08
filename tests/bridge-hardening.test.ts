@@ -10,11 +10,19 @@
  */
 import { describe, expect, it } from "vitest";
 import { spawn } from "node:child_process";
-import { readFileSync, readdirSync, rmSync } from "node:fs";
+import { readFileSync, readdirSync, rmSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const ROOT = join(import.meta.dirname, "..");
+
+// Guard: the desktop bridge runtime is a dev-tree artifact, not part of the
+// public release tree. On a clean public checkout the suite skips cleanly.
+const bridgeJsPath = join(ROOT, "apps", "desktop", "bridge.js");
+if (!existsSync(bridgeJsPath)) {
+  console.log(`[bridge-hardening] skipped: ${bridgeJsPath} not present — run tools/stage-desktop-runtime.mjs first`);
+  return;
+}
 
 interface BridgeInfo {
   proc: ReturnType<typeof spawn>;

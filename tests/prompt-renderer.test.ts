@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { existsSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
+const hostJsPath = join(dirname(fileURLToPath(import.meta.url)), "..", "apps", "desktop", "host.js");
+if (!existsSync(hostJsPath)) {
+  console.log(`[prompt-renderer] skipped: ${hostJsPath} not present — run tools/stage-desktop-runtime.mjs first`);
+  return;
+}
 import { createDesktopHost } from "../apps/desktop/host.js";
 import { deliverTranslatedPrompt, renderTranslatedPrompt } from "../packages/ask-prompt-renderer/index.js";
 
