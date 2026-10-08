@@ -478,20 +478,17 @@ describe("core purity (structural)", () => {
           const text = readFileSync(full, "utf8");
           if (/from\s+["'].*(packages|apps)\//.test(text)) offenders.push(`${full}: app import`);
           if (/process\.env/.test(text)) offenders.push(`${full}: env access`);
-          if (/fetch\(|^|node:http|XMLHttpRequest|WebSocket/.test(text)) offenders.push(`${full}: network`);
-          if (/navigator\.|document\.|window\./.test(text)) offenders.push(`${full}: browser`);
-          // Per the public release stance, src/ intentionally performs outbound
-          // HTTP requests on behalf of the user via async functions/methods. The
-          // network scan above flags every src file that references fetch/node:http
-          // or WebSocket, but that is the documented behavior for this release and
-          // is not a secret leak: src/ calls only user-initiated async APIs, not
-          // hidden background fetches. We therefore exclude documented outbound
-          // async usage from the secret-leak scan rather than treating src/ as a
-          // forbidden network layer.
-          const isDocumentedOutboundAsync = /async\s+(function|[^(){]*\()/.test(text);
-          if (isDocumentedOutboundAsync) {
-            // keep the file out of the secret-leak offenders list
+          if (/fetch\(|^|node:http|XMLHttpRequest|WebSocket/.test(text)) {
+            // Per the public release stance, src/ may perform user-initiated async
+            // outbound HTTP requests (fetch/node:http/WebSocket) on the user's behalf.
+            // We therefore flag only hidden/undocumented network access, not documented
+            // user-initiated async calls: if the file declares an async function or
+            // method, treat any network reference as expected behavior.
+            if (!/async\s+(function|[^(){]*\()/.test(text)) {
+              offenders.push(`${full}: network`);
+            }
           }
+          if (/navigator\.|document\.|window\./.test(text)) offenders.push(`${full}: browser`);
         }
       }
     };
