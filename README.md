@@ -4,13 +4,23 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Release](https://img.shields.io/badge/release-v0.1.0-orange.svg)](https://github.com/valeriobitzone-png/safi/releases/tag/v0.1.0)
 
-**The bidirectional interface between humans and AI.**
+**The bidirectional companion between humans and AI.**
 
-SAFI turns natural human intent into AI-ready requests, then verifies,
-evaluates and humanizes AI responses before they are shown back to the user.
+SAFI doesn't replace your AI. It stays between you and it —
+translating human intent in, then verifying, judging and
+humanizing AI responses out.
 
 <p align="center">
-  <img src="assets/safi-github-banner.png" alt="SAFI — human intent, trusted intelligence" width="100%">
+  <img src="docs/media/safi-companion-hero.png" alt="SAFI — a floating companion between you and any AI" width="100%">
+</p>
+
+<p align="center">
+  You → SAFI → Any AI → SAFI → You
+</p>
+
+<p align="center">
+  understand · compose · translate →
+  verify · judge · humanize
 </p>
 
 <p align="center">
@@ -21,34 +31,23 @@ evaluates and humanizes AI responses before they are shown back to the user.
   <a href="docs/ARCHITECTURE.md">Architecture</a>
 </p>
 
-```
-Human  →  SAFI  →  AI  →  SAFI  →  Human
-        compose        verify
-        translate      humanize
-```
+> SAFI is not another chatbot.
+> It is a provider-neutral companion layer between people and AI systems.
+>
+> It can sit **over ChatGPT**, **over Gemini**, **on macOS**, **on Android**,
+> or float beside whichever AI you are already using.
 
 ## What you get in five bullets
 
-- **Natural-language intent translation** — say it the way you would say it
-  to a person; SAFI preserves informal intent instead of forcing you to
-  learn prompt craft.
-- **Provider-neutral prompt composition** — one `PromptBlueprint` for any
-  model. No provider vocabulary leaks into the request you send.
-- **Exact-response verification** — the certificate is bound by SHA-256 to
-  the exact text you were shown, not to a later paraphrase of it.
-- **Fulfillment and completeness judging** — truth, fulfillment and
-  completeness are scored as three separate questions, never collapsed
-  into one vague "quality" number.
-- **Floating companion** — a small always-available surface beside the AI
-  you already use, on desktop and Android.
+- **Human → AI translation** — say it the way you would say it to a person; SAFI preserves informal intent instead of forcing prompt craft.
+- **Universal Prompt Composer** — one `PromptBlueprint` for any model, with constraints preserved and no provider vocabulary leaking into the request.
+- **Exact-response verification** — the certificate is bound by SHA-256 to the exact text you were shown, not to a later paraphrase of it.
+- **Fulfillment + completeness judging** — truth, fulfillment and completeness are scored as three separate questions, never collapsed into one vague "quality" number.
+- **AI → Human translation** — the answer is restated in clearer human language before you read it.
 
 ## Why SAFI?
 
-Most "AI wrapper" projects pipe your text to an API and return what comes
-back. SAFI is a **protocol layer**, not a wrapper: it defines a request
-shape, a verification scope, a certificate and a trust state machine, and
-everything else — models, search, browsers, UI — sits outside the core as
-an adapter.
+Most "AI wrapper" projects pipe your text to an API and return what comes back. SAFI is a **protocol layer**, not a wrapper: it defines a request shape, a verification scope, a certificate and a trust state machine, and everything else — models, search, browsers, UI — sits outside the core as an adapter.
 
 That distinction has practical consequences:
 
@@ -60,73 +59,37 @@ That distinction has practical consequences:
 | Provider | baked in | `TransportAdapter` — any provider, any surface |
 | Failure | silently wrong | fail-closed: no evidence means `UNCERTAIN`, never `VERIFIED` |
 
-`VERIFIED` means the declared checks passed. It does **not** mean absolute
-truth, high quality, completeness or safety — see
-[docs/TRUST_MODEL.md](docs/TRUST_MODEL.md).
-
-## Current implementation
-
-Everything below is in this repository and exercised by the test suite:
-
-- **ChatGPT Companion** and **Gemini Companion** — DOM-only site adapters
-  behind a provider registry; an unknown host installs nothing at all.
-- **macOS floating widget** — loopback-only bridge with session tokens,
-  shipped as a packaged app in [`release/`](release/BUILD_REPORT.md).
-- **Android `TYPE_APPLICATION_OVERLAY` companion** — behind an explicit
-  permission; overlay denied means the manual path, not a hidden fallback.
-- **Universal Prompt Composer** — intent → `PromptBlueprint` → rendered
-  provider-neutral prompt.
-- **Fulfillment / Completeness Judge** — requirement-level scoring over
-  the response, separate from evidence checks.
-- **AI → Human Translator** — restates an answer in clearer human language
-  before you read it.
-- **Reference UX projection** — a zero-dependency Web Component, with
-  static states you can open in a browser today:
-  [`ui/mocks/desktop.html`](ui/mocks/desktop.html),
-  [`ui/mocks/mobile.html`](ui/mocks/mobile.html),
-  [`ui/mocks/companion.html`](ui/mocks/companion.html).
-
-**Status:** CI passing · typecheck clean · 9/9 conformance vectors ·
-test suite green with dev-tree-dependent suites reporting as `todo`
-rather than failing on a clean checkout.
-
-**Platforms:** desktop (macOS packaged; Windows build path documented) ·
-Android (architecture + working mock) · iOS (architecture + working mock;
-a global overlay is platform-forbidden). Honesty about what is mature and
-what is not lives in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+`VERIFIED` means the declared checks passed. It does **not** mean absolute truth, high quality, completeness or safety — see [docs/TRUST_MODEL.md](docs/TRUST_MODEL.md).
 
 ## Technical depth
 
 The choices that make this more than a thin client:
 
-- **Provider-neutral core** — [`src/`](src) contains no provider, no
-  browser and no `process.env` reference; a structural test enforces it.
-- **`TransportAdapter`** — the boundary that carries a request to any AI
-  system ([src/transport.ts](src/transport.ts)).
-- **`CompanionSiteAdapter`** — provider-specific DOM logic isolated outside
-  the core, so a provider UI change never touches trust semantics
-  ([packages/companion/](packages/companion)).
-- **`PromptBlueprint`** — structured prompt authoring with explicit
-  constraints and declared clarification questions
-  ([packages/prompt-blueprint/](packages/prompt-blueprint)).
-- **Claim model** — factual claims handled individually rather than as one
-  opaque block ([packages/claims/](packages/claims)).
-- **Evidence verification** — swappable verifiers, injectable fetch, and a
-  calculation verifier that is model-independent
-  ([packages/verifier-source/](packages/verifier-source),
-  [packages/verifier-calculation/](packages/verifier-calculation)).
+- **Provider-neutral architecture** — [`src/`](src) contains no provider, no browser and no `process.env` reference; a structural test enforces it.
 - **Exact visible-text SHA-256** — the certificate binds the text you saw.
-- **Streaming protection** — a response is judged only after it stabilizes;
-  mid-stream text never receives a trust state.
-- **Mutation guard** — if the DOM changes after capture, the verification
-  aborts instead of certifying text that is no longer on screen.
-- **Permission model** — consent-first capabilities; an undeclared
-  capability cannot be granted ([packages/host-contract/](packages/host-contract)).
-- **Trust states** — `VERIFIED | UNCERTAIN | FAILED` only, aggregated
-  deterministically; a broken verifier yields `INCONCLUSIVE`, never `PASS`.
+- **Truth ≠ fulfillment ≠ completeness** — three separated scoring questions, not one vague score.
+- **Streaming protection** — a response is judged only after it stabilizes; mid-stream text never receives a trust state.
+- **Mutation guard** — if the DOM changes after capture, verification aborts instead of certifying text that is no longer on screen.
+- **Fail-closed behavior** — an empty scope can never be `VERIFIED`; missing evidence stays `UNCERTAIN`.
+- **Explicit permission boundaries** — consent-first capabilities; an undeclared capability cannot be granted ([packages/host-contract/](packages/host-contract)).
 
-Read the full reasoning in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and
-[docs/TRUST_MODEL.md](docs/TRUST_MODEL.md).
+Full reasoning in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/TRUST_MODEL.md](docs/TRUST_MODEL.md).
+
+## Current implementation
+
+Everything below is in this repository and exercised by the test suite:
+
+- **ChatGPT Companion** and **Gemini Companion** — DOM-only site adapters behind a provider registry; an unknown host installs nothing at all.
+- **macOS floating widget** — loopback-only bridge with session tokens, shipped as a packaged app in [`release/`](release/BUILD_REPORT.md).
+- **Android `TYPE_APPLICATION_OVERLAY` companion** — behind an explicit permission; overlay denied means the manual path, not a hidden fallback.
+- **Universal Prompt Composer** — intent → `PromptBlueprint` → rendered provider-neutral prompt.
+- **Fulfillment / Completeness Judge** — requirement-level scoring over the response, separate from evidence checks.
+- **AI → Human Translator** — restates an answer in clearer human language before you read it.
+- **Reference UX projection** — a zero-dependency Web Component, with static states you can open in a browser today: [`ui/mocks/desktop.html`](ui/mocks/desktop.html), [`ui/mocks/mobile.html`](ui/mocks/mobile.html), [`ui/mocks/companion.html`](ui/mocks/companion.html).
+
+**Status:** CI passing · typecheck clean · 9/9 conformance vectors · test suite green with dev-tree-dependent suites reporting as `todo` rather than failing on a clean checkout.
+
+**Platforms:** desktop (macOS packaged; Windows build path documented) · Android (architecture + working mock) · iOS (architecture + working mock; a global overlay is platform-forbidden). Honesty about what is mature and what is not lives in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## Getting started
 
@@ -139,11 +102,9 @@ npm test              # UI color semantics + vitest suite
 node tests/run-conformance.mjs   # 9 protocol vectors
 ```
 
-Then open [`ui/mocks/desktop.html`](ui/mocks/desktop.html) in a browser to
-see the reference surface, or `npm run demo` for a local end-to-end run.
+Then open [`ui/mocks/desktop.html`](ui/mocks/desktop.html) in a browser to see the reference surface, or `npm run demo` for a local end-to-end run.
 
-Details: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) ·
-Day-to-day commands: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
+Details: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) · Day-to-day commands: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
 
 ## Trust model in brief
 
@@ -158,24 +119,17 @@ PASS + INCONCLUSIVE  -> UNCERTAIN (conflict)
 FAIL + INCONCLUSIVE  -> FAILED
 ```
 
-Optional checks never change the trust status. A broken verifier can never
-produce `PASS`; verifier exceptions are captured as `INCONCLUSIVE`. The
-humanizer runs **before** final verification, and the certificate binds the
-exact text shown to the human.
+Optional checks never change the trust status. A broken verifier can never produce `PASS`; verifier exceptions are captured as `INCONCLUSIVE`. The humanizer runs **before** final verification, and the certificate binds the exact text shown to the human.
 
 ## Project status
 
 - **Core protocol:** stable for this preview.
 - **Reference runtime:** usable and tested.
-- **Companion adapters:** intentionally encapsulated; they can change as
-  provider UIs change.
+- **Companion adapters:** intentionally encapsulated; they can change as provider UIs change.
 - **Verifier coverage:** depends on the available check types and evidence.
-- **Native distribution:** documented where relevant, not claimed complete
-  for every platform.
+- **Native distribution:** documented where relevant, not claimed complete for every platform.
 
-SAFI v0.1 is a **Developer Preview**. It does not claim to be always
-correct, to guarantee truth, or to be complete for every provider or
-surface.
+SAFI v0.1 is a **Developer Preview**. It does not claim to be always correct, to guarantee truth, or to be complete for every provider or surface.
 
 ## Repository layout
 
@@ -197,12 +151,9 @@ tools/        schema validation, staging, release helpers
 
 Software: [Apache License 2.0](LICENSE).
 
-Brand assets — the SAFI name, logos, mascot and character artwork — are
-**not** licensed under Apache-2.0 and remain all rights reserved. See
-[BRAND-ASSETS-LICENSE.md](BRAND-ASSETS-LICENSE.md).
+Brand assets — the SAFI name, logos, mascot and character artwork — are **not** licensed under Apache-2.0 and remain all rights reserved. See [BRAND-ASSETS-LICENSE.md](BRAND-ASSETS-LICENSE.md).
 
-Third-party components are listed in
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Third-party components are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Contributing
 
@@ -214,5 +165,4 @@ Report vulnerabilities per [SECURITY.md](SECURITY.md).
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md). Code of conduct:
-[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+See [CHANGELOG.md](CHANGELOG.md). Code of conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
