@@ -16,16 +16,8 @@ const semantic = {
 };
 
 describe("Ask prompt renderer", () => {
-  if (!existsSync(hostJsPath)) {
-    it.todo("projects the neutral translation into a structured AI-ready prompt");
-    it.todo("does not leak provider-specific vocabulary into the consumer prompt");
-    it.todo("retains explicit constraints and declared clarification questions");
-    it.todo("exposes the same delivery projection through the desktop host");
-    it.todo("does not reuse a previous prompt when Ask requests overlap");
-    it.todo("keeps Ask completion separate from factual verification");
-    return;
-  }
-
+  // The three renderer tests below exercise only packages/ask-prompt-renderer,
+  // which is part of the public checkout: they must run everywhere.
   it("projects the neutral translation into a structured AI-ready prompt", () => {
     const prompt = deliverTranslatedPrompt({ semantic });
     expect(prompt.kind).toBe("prompt-ready/v0.1");
@@ -61,6 +53,15 @@ describe("Ask prompt renderer", () => {
     expect(prompt.text).toContain("tono: formale");
     expect(prompt.text).toContain("Qual è il tono preferito?");
   });
+
+  // The desktop host is a dev-tree artifact (staged, not tracked): on a clean
+  // public checkout these three report as todo instead of failing to collect.
+  if (!existsSync(hostJsPath)) {
+    it.todo("exposes the same delivery projection through the desktop host");
+    it.todo("does not reuse a previous prompt when Ask requests overlap");
+    it.todo("keeps Ask completion separate from factual verification");
+    return;
+  }
 
   it("exposes the same delivery projection through the desktop host", async () => {
     const { createDesktopHost } = await import("../apps/desktop/host.js");

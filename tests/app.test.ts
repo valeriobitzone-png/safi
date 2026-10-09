@@ -113,13 +113,11 @@ describe("shared Safi client", () => {
 /* Cross-host: the same certificate reads identically everywhere       */
 /* ------------------------------------------------------------------ */
 
+// Desktop and mobile host adapters are dev-tree artifacts (staged, not
+// tracked). On a clean public checkout this reports as skipped rather than
+// returning early and claiming a pass it never made.
 describe("cross-host certificate interpretation", () => {
-  it("macOS, Windows, Android and iOS project the same stamp from the same certificate", async () => {
-    if (!canRunDesktopHostTests || !canRunMobileHostTests) {
-      // Desktop and mobile host adapters are dev-tree artifacts; on a clean
-      // public checkout the cross-host suite skips, not fails to collect.
-      return;
-    }
+  it.skipIf(!canRunDesktopHostTests || !canRunMobileHostTests)("macOS, Windows, Android and iOS project the same stamp from the same certificate", async () => {
     const { createDesktopHost } = await import("../apps/desktop/host.js");
     const { createAndroidHostAdapter } = await import("../apps/android/host-adapter.js");
     const { createIOSHostAdapter } = await import("../apps/ios/host-adapter.js");

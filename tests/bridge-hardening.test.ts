@@ -5,6 +5,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const ROOT = join(import.meta.dirname, "..");
+// The hardened bridge is a dev-tree artifact (staged by npm run app:stage,
+// not tracked). On a clean public checkout this suite reports as todo.
 const bridgeJsPath = join(ROOT, "apps", "desktop", "bridge.js");
 
 interface BridgeInfo {
